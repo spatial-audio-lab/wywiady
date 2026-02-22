@@ -1,94 +1,134 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
-import { Sidebar } from './components/Sidebar';
-import { Playlist } from './components/Playlist';
-import { MapView } from './components/MapView';
-import { TransportControls } from './components/TransportControls';
-import { AudioEngine } from './audio/AudioEngine';
-import { type Interview, interviews } from './data/interviews';
+import { useState, useRef, useCallback, useEffect } from "react"
+import { Sidebar } from "./components/Sidebar"
+import { Playlist } from "./components/Playlist"
+import { MapView } from "./components/MapView"
+import { TransportControls } from "./components/TransportControls"
+import { AudioEngine } from "./audio/AudioEngine"
+import { type Interview, interviews } from "./data/interviews"
 
 export function App() {
-  const [selectedInterview, setSelectedInterview] = useState<Interview | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTrackIndex, setCurrentTrackIndex] = useState(-1);
-  const [listenerX, setListenerX] = useState(0);
-  const [listenerZ, setListenerZ] = useState(4);
-  const [listenerAngle, setListenerAngle] = useState(0);
-  const [ambientLevel, setAmbientLevel] = useState(0.25);
-  const [dialogLevel, setDialogLevel] = useState(0.7);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [audioReady, setAudioReady] = useState(false);
-  const [showWelcome, setShowWelcome] = useState(true);
+  const [selectedInterview, setSelectedInterview] = useState<Interview | null>(
+    null,
+  )
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [currentTrackIndex, setCurrentTrackIndex] = useState(-1)
+  const [isLoadingTrack, setIsLoadingTrack] = useState(false)
+  const [listenerX, setListenerX] = useState(0)
+  const [listenerZ, setListenerZ] = useState(4)
+  const [listenerAngle, setListenerAngle] = useState(0)
+  const [ambientLevel, setAmbientLevel] = useState(0.25)
+  const [dialogLevel, setDialogLevel] = useState(0.7)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [audioReady, setAudioReady] = useState(false)
+  const [showWelcome, setShowWelcome] = useState(true)
 
-  const engineRef = useRef<AudioEngine | null>(null);
+  const engineRef = useRef<AudioEngine | null>(null)
 
   useEffect(() => {
     const engine = new AudioEngine((state) => {
-      if (state.isPlaying !== undefined) setIsPlaying(state.isPlaying);
-      if (state.currentTrackIndex !== undefined) setCurrentTrackIndex(state.currentTrackIndex);
-      if (state.listenerX !== undefined) setListenerX(state.listenerX);
-      if (state.listenerZ !== undefined) setListenerZ(state.listenerZ);
-      if (state.listenerAngle !== undefined) setListenerAngle(state.listenerAngle);
-      if (state.ambientLevel !== undefined) setAmbientLevel(state.ambientLevel);
-      if (state.dialogLevel !== undefined) setDialogLevel(state.dialogLevel);
-    });
-    engineRef.current = engine;
-    return () => { engine.destroy(); };
-  }, []);
+      if (state.isPlaying !== undefined) setIsPlaying(state.isPlaying)
+      if (state.currentTrackIndex !== undefined)
+        setCurrentTrackIndex(state.currentTrackIndex)
+      if (state.isLoadingTrack !== undefined)
+        setIsLoadingTrack(state.isLoadingTrack)
+      if (state.listenerX !== undefined) setListenerX(state.listenerX)
+      if (state.listenerZ !== undefined) setListenerZ(state.listenerZ)
+      if (state.listenerAngle !== undefined)
+        setListenerAngle(state.listenerAngle)
+      if (state.ambientLevel !== undefined) setAmbientLevel(state.ambientLevel)
+      if (state.dialogLevel !== undefined) setDialogLevel(state.dialogLevel)
+    })
+    engineRef.current = engine
+    return () => {
+      engine.destroy()
+    }
+  }, [])
 
   const handleStartAudio = useCallback(async () => {
     if (engineRef.current) {
-      await engineRef.current.init();
-      setAudioReady(true);
-      setShowWelcome(false);
+      await engineRef.current.init()
+      setAudioReady(true)
+      setShowWelcome(false)
     }
-  }, []);
+  }, [])
 
-  const handleSelectInterview = useCallback(async (interview: Interview) => {
-    if (!audioReady) await handleStartAudio();
-    setSelectedInterview(interview);
-    if (engineRef.current) {
-      const tracks = interview.tracks.map(t => ({
-        speaker: t.speaker,
-        durationMs: t.durationMs,
-        label: t.label,
-      }));
-      const idx = interviews.findIndex(i => i.id === interview.id);
-      await engineRef.current.loadInterview(interview.id, tracks, idx);
-    }
-  }, [audioReady, handleStartAudio]);
+  const handleSelectInterview = useCallback(
+    async (interview: Interview) => {
+      if (!audioReady) await handleStartAudio()
+      setSelectedInterview(interview)
+      if (engineRef.current) {
+        // ← Pass all track fields including filename so the engine can fetch real files
+        const tracks = interview.tracks.map((t) => ({
+          speaker: t.speaker,
+          durationMs: t.durationMs,
+          label: t.label,
+          filename: t.filename,
+        }))
+        const idx = interviews.findIndex((i) => i.id === interview.id)
+        await engineRef.current.loadInterview(interview.id, tracks, idx)
+      }
+    },
+    [audioReady, handleStartAudio],
+  )
 
-  const handlePlay     = useCallback(() => { engineRef.current?.play(); }, []);
-  const handlePause    = useCallback(() => { engineRef.current?.pause(); }, []);
-  const handleStop     = useCallback(() => { engineRef.current?.stop(); }, []);
-  const handleSkipPrev = useCallback(() => { engineRef.current?.skipPrev(); }, []);
-  const handleSkipNext = useCallback(() => { engineRef.current?.skipNext(); }, []);
-  const handleSkipTo   = useCallback((i: number) => { engineRef.current?.skipTo(i); }, []);
+  const handlePlay = useCallback(() => {
+    engineRef.current?.play()
+  }, [])
+  const handlePause = useCallback(() => {
+    engineRef.current?.pause()
+  }, [])
+  const handleStop = useCallback(() => {
+    engineRef.current?.stop()
+  }, [])
+  const handleSkipPrev = useCallback(() => {
+    engineRef.current?.skipPrev()
+  }, [])
+  const handleSkipNext = useCallback(() => {
+    engineRef.current?.skipNext()
+  }, [])
+  const handleSkipTo = useCallback((i: number) => {
+    engineRef.current?.skipTo(i)
+  }, [])
 
   const handleListenerMove = useCallback((x: number, z: number, a: number) => {
-    engineRef.current?.updateListenerPosition(x, z, a);
-  }, []);
+    engineRef.current?.updateListenerPosition(x, z, a)
+  }, [])
 
-  const handleAmbientLevel = useCallback((v: number) => { engineRef.current?.setAmbientLevel(v); }, []);
-  const handleDialogLevel  = useCallback((v: number) => { engineRef.current?.setDialogLevel(v); }, []);
+  const handleAmbientLevel = useCallback((v: number) => {
+    engineRef.current?.setAmbientLevel(v)
+  }, [])
+  const handleDialogLevel = useCallback((v: number) => {
+    engineRef.current?.setDialogLevel(v)
+  }, [])
 
-  const accentColor = selectedInterview?.color ?? '#6366f1';
+  const accentColor = selectedInterview?.color ?? "#6366f1"
 
   const activeSpeaker =
-    selectedInterview && currentTrackIndex >= 0 && currentTrackIndex < selectedInterview.tracks.length
+    selectedInterview &&
+    currentTrackIndex >= 0 &&
+    currentTrackIndex < selectedInterview.tracks.length
       ? selectedInterview.tracks[currentTrackIndex].speaker
-      : null;
+      : null
 
   return (
     <div className="h-screen w-screen flex flex-col bg-[#060610] text-white overflow-hidden">
-
       {/* ═══════ Welcome overlay ═══════ */}
       {showWelcome && (
         <div className="fixed inset-0 z-50 bg-[#060610] flex items-center justify-center">
           <div className="text-center max-w-lg px-8">
             <div className="relative w-32 h-32 mx-auto mb-8">
-              <div className="absolute inset-0 rounded-full border border-indigo-500/20 animate-ping" style={{ animationDuration: '3s' }} />
-              <div className="absolute inset-2 rounded-full border border-indigo-500/30 animate-ping" style={{ animationDuration: '2.5s' }} />
-              <div className="absolute inset-4 rounded-full border border-indigo-500/40 animate-ping" style={{ animationDuration: '2s' }} />
+              <div
+                className="absolute inset-0 rounded-full border border-indigo-500/20 animate-ping"
+                style={{ animationDuration: "3s" }}
+              />
+              <div
+                className="absolute inset-2 rounded-full border border-indigo-500/30 animate-ping"
+                style={{ animationDuration: "2.5s" }}
+              />
+              <div
+                className="absolute inset-4 rounded-full border border-indigo-500/40 animate-ping"
+                style={{ animationDuration: "2s" }}
+              />
               <div className="absolute inset-0 flex items-center justify-center">
                 <span className="text-5xl">🎧</span>
               </div>
@@ -110,18 +150,30 @@ export function App() {
               <div className="text-center">
                 <div className="grid grid-cols-3 gap-[2px] mb-1.5">
                   <span />
-                  <kbd className="w-6 h-5 flex items-center justify-center rounded bg-white/10 text-white/50 font-bold text-[9px]">W</kbd>
+                  <kbd className="w-6 h-5 flex items-center justify-center rounded bg-white/10 text-white/50 font-bold text-[9px]">
+                    W
+                  </kbd>
                   <span />
-                  <kbd className="w-6 h-5 flex items-center justify-center rounded bg-white/10 text-white/50 font-bold text-[9px]">A</kbd>
-                  <kbd className="w-6 h-5 flex items-center justify-center rounded bg-white/10 text-white/50 font-bold text-[9px]">S</kbd>
-                  <kbd className="w-6 h-5 flex items-center justify-center rounded bg-white/10 text-white/50 font-bold text-[9px]">D</kbd>
+                  <kbd className="w-6 h-5 flex items-center justify-center rounded bg-white/10 text-white/50 font-bold text-[9px]">
+                    A
+                  </kbd>
+                  <kbd className="w-6 h-5 flex items-center justify-center rounded bg-white/10 text-white/50 font-bold text-[9px]">
+                    S
+                  </kbd>
+                  <kbd className="w-6 h-5 flex items-center justify-center rounded bg-white/10 text-white/50 font-bold text-[9px]">
+                    D
+                  </kbd>
                 </div>
                 <span>Move &amp; Strafe</span>
               </div>
               <div className="text-center">
                 <div className="flex gap-[2px] mb-1.5 justify-center">
-                  <kbd className="w-6 h-5 flex items-center justify-center rounded bg-amber-500/15 text-amber-300/60 font-bold text-[9px]">Q</kbd>
-                  <kbd className="w-6 h-5 flex items-center justify-center rounded bg-amber-500/15 text-amber-300/60 font-bold text-[9px]">E</kbd>
+                  <kbd className="w-6 h-5 flex items-center justify-center rounded bg-amber-500/15 text-amber-300/60 font-bold text-[9px]">
+                    Q
+                  </kbd>
+                  <kbd className="w-6 h-5 flex items-center justify-center rounded bg-amber-500/15 text-amber-300/60 font-bold text-[9px]">
+                    E
+                  </kbd>
                 </div>
                 <span>Rotate</span>
               </div>
@@ -137,7 +189,8 @@ export function App() {
             </div>
 
             <p className="text-[10px] text-white/10 mt-4">
-              Browser requires user interaction to start AudioContext · 48 kHz · 32-bit float
+              Browser requires user interaction to start AudioContext · 48 kHz ·
+              32-bit float
             </p>
 
             <div className="flex justify-center gap-5 mt-6 text-[10px] text-white/15">
@@ -155,20 +208,18 @@ export function App() {
 
       {/* ═══════ Main layout ═══════ */}
       <div className="flex flex-1 overflow-hidden">
-
         {/* Sidebar */}
         <Sidebar
           selectedId={selectedInterview?.id ?? null}
           onSelect={handleSelectInterview}
           isCollapsed={sidebarCollapsed}
-          onToggleCollapse={() => setSidebarCollapsed(c => !c)}
+          onToggleCollapse={() => setSidebarCollapsed((c) => !c)}
         />
 
         {/* Center + right */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {selectedInterview ? (
             <div className="flex-1 flex overflow-hidden">
-
               {/* ── Map View ── */}
               <div className="flex-1 relative">
                 <MapView
@@ -190,18 +241,39 @@ export function App() {
                   <div className="bg-black/55 backdrop-blur-md rounded-xl px-4 py-3 max-w-xs border border-white/5">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-lg">{selectedInterview.icon}</span>
-                      <h2 className="text-sm font-bold text-white">{selectedInterview.title}</h2>
+                      <h2 className="text-sm font-bold text-white">
+                        {selectedInterview.title}
+                      </h2>
                     </div>
-                    <p className="text-[10px] text-white/30">{selectedInterview.subtitle} · {selectedInterview.location}</p>
-                    {currentTrackIndex >= 0 && currentTrackIndex < selectedInterview.tracks.length && (
-                      <div className="mt-2 flex items-center gap-2">
-                        <span
-                          className="w-2 h-2 rounded-full animate-pulse"
-                          style={{ backgroundColor: selectedInterview.tracks[currentTrackIndex].speaker === 'A' ? '#ff6b6b' : '#4ecdc4' }}
-                        />
-                        <span className="text-xs text-white/60">{selectedInterview.tracks[currentTrackIndex].label}</span>
-                      </div>
-                    )}
+                    <p className="text-[10px] text-white/30">
+                      {selectedInterview.subtitle} ·{" "}
+                      {selectedInterview.location}
+                    </p>
+                    {currentTrackIndex >= 0 &&
+                      currentTrackIndex < selectedInterview.tracks.length && (
+                        <div className="mt-2 flex items-center gap-2">
+                          {isLoadingTrack ? (
+                            <span className="w-2 h-2 rounded-full border border-white/40 border-t-white animate-spin" />
+                          ) : (
+                            <span
+                              className="w-2 h-2 rounded-full animate-pulse"
+                              style={{
+                                backgroundColor:
+                                  selectedInterview.tracks[currentTrackIndex]
+                                    .speaker === "A"
+                                    ? "#ff6b6b"
+                                    : "#4ecdc4",
+                              }}
+                            />
+                          )}
+                          <span className="text-xs text-white/60">
+                            {isLoadingTrack
+                              ? "Loading…"
+                              : selectedInterview.tracks[currentTrackIndex]
+                                  .label}
+                          </span>
+                        </div>
+                      )}
                   </div>
                 </div>
               </div>
@@ -211,6 +283,7 @@ export function App() {
                 <Playlist
                   interview={selectedInterview}
                   currentTrackIndex={currentTrackIndex}
+                  isLoadingTrack={isLoadingTrack}
                   onSkipTo={handleSkipTo}
                 />
               </div>
@@ -220,12 +293,17 @@ export function App() {
             <div className="flex-1 flex items-center justify-center">
               <div className="text-center">
                 <div className="relative w-24 h-24 mx-auto mb-6">
-                  <div className="absolute inset-0 rounded-full border-2 border-dashed border-white/10 animate-spin" style={{ animationDuration: '20s' }} />
+                  <div
+                    className="absolute inset-0 rounded-full border-2 border-dashed border-white/10 animate-spin"
+                    style={{ animationDuration: "20s" }}
+                  />
                   <div className="absolute inset-0 flex items-center justify-center">
                     <span className="text-4xl opacity-30">🎙️</span>
                   </div>
                 </div>
-                <h2 className="text-lg font-semibold text-white/20 mb-2">Select an Interview</h2>
+                <h2 className="text-lg font-semibold text-white/20 mb-2">
+                  Select an Interview
+                </h2>
                 <p className="text-xs text-white/10 max-w-xs">
                   Choose from the sidebar to load a spatial audio interview
                 </p>
@@ -251,5 +329,5 @@ export function App() {
         onDialogLevelChange={handleDialogLevel}
       />
     </div>
-  );
+  )
 }

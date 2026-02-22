@@ -26,3 +26,7 @@ npm-debug.log*
 
 # TypeScript cache
 *.tsbuildinfo
+
+# Audio files (too large for git, add manually or use LFS)
+# Uncomment the line below if you DON'T want audio in the repo:
+# public/assets/interviews/**/*.wav

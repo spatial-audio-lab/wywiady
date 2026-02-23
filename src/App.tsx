@@ -78,7 +78,14 @@ export function App() {
           filename: t.filename,
         }))
         const idx = interviews.findIndex((i) => i.id === interview.id)
-        await engineRef.current.loadInterview(interview.id, tracks, idx)
+
+        // Zaktualizowane przekazywanie zmiennej ambientFile (wsparcie dla .webm)
+        await engineRef.current.loadInterview(
+          interview.id,
+          tracks,
+          idx,
+          interview.ambientFile,
+        )
       }
     },
     [audioReady, handleStartAudio],
@@ -287,7 +294,7 @@ export function App() {
                           )}
                           <span className="text-xs text-white/60">
                             {isLoadingTrack
-                              ? "Loading…"
+                              ? "Ładowanie…"
                               : selectedInterview.tracks[currentTrackIndex]
                                   .label}
                           </span>
@@ -321,10 +328,11 @@ export function App() {
                   </div>
                 </div>
                 <h2 className="text-lg font-semibold text-white/20 mb-2">
-                  Select an Interview
+                  Wybierz wywiad
                 </h2>
                 <p className="text-xs text-white/10 max-w-xs">
-                  Choose from the sidebar to load a spatial audio interview
+                  Wybierz element z bocznego panelu, aby załadować przestrzenny
+                  wywiad audio
                 </p>
               </div>
             </div>

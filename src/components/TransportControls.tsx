@@ -1,16 +1,93 @@
+// src/components/TransportControls.tsx
+// Zmiany: inline label z wartością % przy suwaках (Wariant B)
+
+import { useState } from "react"
+
 interface TransportControlsProps {
-  isPlaying: boolean;
-  hasInterview: boolean;
-  ambientLevel: number;
-  dialogLevel: number;
-  accentColor: string;
-  onPlay: () => void;
-  onPause: () => void;
-  onStop: () => void;
-  onSkipPrev: () => void;
-  onSkipNext: () => void;
-  onAmbientLevelChange: (v: number) => void;
-  onDialogLevelChange: (v: number) => void;
+  isPlaying: boolean
+  hasInterview: boolean
+  ambientLevel: number
+  dialogLevel: number
+  accentColor: string
+  onPlay: () => void
+  onPause: () => void
+  onStop: () => void
+  onSkipPrev: () => void
+  onSkipNext: () => void
+  onAmbientLevelChange: (v: number) => void
+  onDialogLevelChange: (v: number) => void
+}
+
+function SliderRow({
+  label,
+  icon,
+  value,
+  onChange,
+  accentColor,
+}: {
+  label: string
+  icon: string
+  value: number
+  onChange: (v: number) => void
+  accentColor: string
+}) {
+  const [active, setActive] = useState(false)
+  const pct = Math.round(value * 100)
+
+  return (
+    <div className="flex items-center gap-2 min-w-[160px]">
+      {/* Ikona */}
+      <span className="text-[13px] opacity-50">{icon}</span>
+
+      {/* Label + wartość */}
+      <div className="flex items-baseline gap-1.5 w-[72px] shrink-0">
+        <span className="text-[10px] text-white/40 uppercase tracking-wide leading-none">
+          {label}
+        </span>
+        <span
+          className="text-[11px] font-mono font-semibold leading-none transition-all duration-150"
+          style={{
+            color: active ? accentColor : "rgba(255,255,255,0.25)",
+            // lekkie powiększenie gdy aktywny (drag lub hover)
+            fontSize: active ? "12px" : "11px",
+          }}
+        >
+          {pct}%
+        </span>
+      </div>
+
+      {/* Slider */}
+      <div className="relative flex-1">
+        {/* Track fill */}
+        <div
+          className="absolute top-1/2 left-0 h-[2px] rounded-full -translate-y-1/2 pointer-events-none transition-all duration-75"
+          style={{
+            width: `${pct}%`,
+            backgroundColor: active ? accentColor : "rgba(255,255,255,0.2)",
+          }}
+        />
+        <input
+          type="range"
+          min={0}
+          max={1}
+          step={0.01}
+          value={value}
+          onChange={(e) => onChange(Number(e.target.value))}
+          onMouseDown={() => setActive(true)}
+          onMouseUp={() => setActive(false)}
+          onMouseLeave={() => setActive(false)}
+          onTouchStart={() => setActive(true)}
+          onTouchEnd={() => setActive(false)}
+          className="relative w-full h-1 rounded-full appearance-none cursor-pointer bg-white/8 focus:outline-none"
+          style={
+            {
+              "--thumb-color": accentColor,
+            } as React.CSSProperties
+          }
+        />
+      </div>
+    </div>
+  )
 }
 
 export function TransportControls({
@@ -60,18 +137,28 @@ export function TransportControls({
             disabled={!hasInterview}
             className="w-12 h-12 rounded-xl flex items-center justify-center text-white transition-all shadow-lg disabled:opacity-20"
             style={{
-              backgroundColor: hasInterview ? accentColor : '#333',
-              boxShadow: hasInterview ? `0 4px 20px ${accentColor}40` : 'none',
+              backgroundColor: hasInterview ? accentColor : "#333",
+              boxShadow: hasInterview ? `0 4px 20px ${accentColor}40` : "none",
             }}
-            title={isPlaying ? 'Pause' : 'Play'}
+            title={isPlaying ? "Pause" : "Play"}
           >
             {isPlaying ? (
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 18 18"
+                fill="currentColor"
+              >
                 <rect x="3" y="2" width="4" height="14" rx="1" />
                 <rect x="11" y="2" width="4" height="14" rx="1" />
               </svg>
             ) : (
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 18 18"
+                fill="currentColor"
+              >
                 <path d="M4 2L16 9L4 16V2Z" />
               </svg>
             )}
@@ -84,68 +171,72 @@ export function TransportControls({
             title="Next"
           >
             <svg width="16" height="14" viewBox="0 0 16 14" fill="currentColor">
-              <path d="M2 1L10 7L2 13V1Z" />
               <rect x="13" y="1" width="2" height="12" rx="0.5" />
+              <path d="M2 1L10 7L2 13V1Z" />
             </svg>
           </button>
         </div>
 
-        {/* Gain staging controls */}
-        <div className="flex items-center gap-6 flex-1 max-w-lg">
-          {/* Ambient level */}
-          <div className="flex items-center gap-2 flex-1">
-            <span className="text-[10px] text-purple-300/50 uppercase tracking-wider whitespace-nowrap">
-              🌐 Amb
-            </span>
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.01"
-              value={ambientLevel}
-              onChange={(e) => onAmbientLevelChange(parseFloat(e.target.value))}
-              className="flex-1 h-1 appearance-none rounded-full bg-white/10 accent-purple-400"
-              style={{ accentColor: '#a855f7' }}
-            />
-            <span className="text-[10px] text-white/20 font-mono w-8 text-right">
-              {Math.round(ambientLevel * 100)}%
-            </span>
-          </div>
-
-          {/* Dialog level */}
-          <div className="flex items-center gap-2 flex-1">
-            <span className="text-[10px] text-amber-300/50 uppercase tracking-wider whitespace-nowrap">
-              🎙 Dlg
-            </span>
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.01"
-              value={dialogLevel}
-              onChange={(e) => onDialogLevelChange(parseFloat(e.target.value))}
-              className="flex-1 h-1 appearance-none rounded-full bg-white/10 accent-amber-400"
-              style={{ accentColor: '#fbbf24' }}
-            />
-            <span className="text-[10px] text-white/20 font-mono w-8 text-right">
-              {Math.round(dialogLevel * 100)}%
-            </span>
-          </div>
+        {/* ── Gain sliders ── */}
+        <div className="flex items-center gap-6">
+          <SliderRow
+            label="Ambient"
+            icon="🌿"
+            value={ambientLevel}
+            onChange={onAmbientLevelChange}
+            accentColor={accentColor}
+          />
+          <SliderRow
+            label="Dialog"
+            icon="🎙️"
+            value={dialogLevel}
+            onChange={onDialogLevelChange}
+            accentColor={accentColor}
+          />
         </div>
 
-        {/* Status */}
-        <div className="flex items-center gap-2">
-          {isPlaying && (
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: accentColor }} />
-              <span className="text-[10px] text-white/30 uppercase tracking-wider">Live</span>
-            </div>
-          )}
-          <div className="text-[10px] text-white/10 font-mono">
-            48kHz · HRTF
-          </div>
-        </div>
+        {/* Spacer / right slot (opcjonalnie skróty) */}
+        <div className="w-24 hidden lg:block" />
       </div>
+
+      {/* Tailwind custom thumb styles — wstrzyknięte inline żeby działały bez compilera */}
+      <style>{`
+        input[type=range]::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          width: 13px;
+          height: 13px;
+          border-radius: 50%;
+          background: var(--thumb-color, #fff);
+          cursor: pointer;
+          box-shadow: 0 0 0 2px rgba(0,0,0,0.4);
+          transition: transform 0.1s;
+        }
+        input[type=range]::-webkit-slider-thumb:hover {
+          transform: scale(1.25);
+        }
+        input[type=range]::-moz-range-thumb {
+          width: 13px;
+          height: 13px;
+          border-radius: 50%;
+          background: var(--thumb-color, #fff);
+          cursor: pointer;
+          border: none;
+          box-shadow: 0 0 0 2px rgba(0,0,0,0.4);
+        }
+        input[type=range] {
+          background: transparent;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+          height: 3px;
+          border-radius: 2px;
+          background: rgba(255,255,255,0.08);
+        }
+        input[type=range]::-moz-range-track {
+          height: 3px;
+          border-radius: 2px;
+          background: rgba(255,255,255,0.08);
+        }
+      `}</style>
     </div>
-  );
+  )
 }

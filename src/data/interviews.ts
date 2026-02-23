@@ -43,10 +43,9 @@ export const interviews: Interview[] = [
     location: "Plener / Las",
     date: "2025-10",
     icon: "🌿",
-    color: "#22c55e", // Zielony (natura)
+    color: "#22c55e",
     ambientDescription:
       "Wielokanałowe nagranie terenowe: wiatr, ptaki, mikrodetale lasu",
-    // Ekspert i badacz w plenerze - blisko siebie
     speakerAPos: { x: -2, z: -3 },
     speakerBPos: { x: 2, z: -3 },
     listenerStart: { x: 0, z: 3 },
@@ -94,7 +93,7 @@ export const interviews: Interview[] = [
     location: "Studio Muzyczne",
     date: "2026-01",
     icon: "🎹",
-    color: "#8b5cf6", // Fioletowy (ambient, głębia)
+    color: "#8b5cf6",
     ambientDescription:
       "Głęboki, powoli ewoluujący dron syntezatorowy z subtelnym pogłosem",
     speakerAPos: { x: -3, z: -2 },
@@ -144,7 +143,7 @@ export const interviews: Interview[] = [
     location: "Pracownia Elektroakustyczna",
     date: "2025-12",
     icon: "🎛️",
-    color: "#f97316", // Pomarańczowy (energia, elektronika)
+    color: "#f97316",
     ambientDescription:
       "Warstwy szumów, subtelne glitche i przestrzenny sound design",
     speakerAPos: { x: -4, z: -1 },
@@ -194,8 +193,10 @@ export const interviews: Interview[] = [
     location: "Przestrzeń Wirtualna (VR)",
     date: "2025-11",
     icon: "🥽",
-    color: "#ec4899", // Różowy (digital, VR, neon)
+    color: "#ec4899",
     ambientDescription: "Abstrakcyjna, cyfrowa przestrzeń audiosferyczna 360",
+    // Dodana obsługa pliku .webm jako tła (z opusem)
+    ambientFile: "ambient.webm",
     speakerAPos: { x: -3, z: 0 },
     speakerBPos: { x: 3, z: 0 },
     listenerStart: { x: 0, z: 4 },
@@ -243,9 +244,8 @@ export const interviews: Interview[] = [
     location: "Scena Teatralna",
     date: "2026-02",
     icon: "🎭",
-    color: "#3b82f6", // Niebieski (klasyczny, filmowy)
+    color: "#3b82f6",
     ambientDescription: "Akustyka dużej sali teatralnej, oddech pustej widowni",
-    // Szeroka scena
     speakerAPos: { x: -5, z: -4 },
     speakerBPos: { x: 5, z: -4 },
     listenerStart: { x: 0, z: 6 },

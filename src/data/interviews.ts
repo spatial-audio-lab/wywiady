@@ -228,7 +228,7 @@ export const interviews: Interview[] = [
       "o teatrze, wirtualnej rzeczywistości i obecności w cyfrowym świecie",
     location: "Metro Centrum, Warsaw",
     date: "2026-02-22",
-    icon: "🚇",
+    icon: "KRZYSZTOF GARBACZEWSKI",
     color: "#f59e0b",
     ambientDescription:
       "Metro station, train arrivals, announcements, crowd murmur",

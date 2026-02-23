@@ -207,7 +207,7 @@ export const interviews: Interview[] = [
         order: 1,
         speaker: "A",
         label: "Dźwięk a wirtualna obecność",
-        filename: "01_A_pytanie.wav",
+        filename: "01_A_pytanie.webm",
         durationMs: 6000,
       },
       {
@@ -215,7 +215,7 @@ export const interviews: Interview[] = [
         order: 2,
         speaker: "B",
         label: "Przesuwanie granic teatru przez VR",
-        filename: "02_B_odpowiedz.wav",
+        filename: "02_B_odpowiedz.webm",
         durationMs: 18000,
       },
       {
@@ -223,7 +223,7 @@ export const interviews: Interview[] = [
         order: 3,
         speaker: "A",
         label: "Integracja audio i wideo",
-        filename: "03_A_pytanie2.wav",
+        filename: "03_A_pytanie2.webm",
         durationMs: 5000,
       },
       {
@@ -231,7 +231,7 @@ export const interviews: Interview[] = [
         order: 4,
         speaker: "B",
         label: "Nowe formy immersji",
-        filename: "04_B_odpowiedz2.wav",
+        filename: "04_B_odpowiedz2.webm",
         durationMs: 15000,
       },
     ],

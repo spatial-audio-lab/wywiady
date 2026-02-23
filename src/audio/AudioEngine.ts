@@ -107,7 +107,7 @@ export class AudioEngine {
     this.ambientGain.connect(compressor)
 
     this.dialogGain = this.ctx.createGain()
-    this.dialogGain.gain.value = this.dialogLevelValue
+    this.dialogGain.gain.value = this.dialogLevelValue * 2.0 // Wzmocnienie maksymalnej głośności mówców (x2.5)
     this.dialogGain.connect(compressor)
 
     this.pannerA = this.makePanner(this.speakerAPos)
@@ -144,9 +144,9 @@ export class AudioEngine {
     const p = this.ctx!.createPanner()
     p.panningModel = "HRTF"
     p.distanceModel = "inverse"
-    p.refDistance = 1
-    p.maxDistance = 50
-    p.rolloffFactor = 1.5
+    p.refDistance = 2.0 // Zwiększone z 1: tworzy szerszą strefę pełnego, najgłośniejszego dźwięku wokół mówcy
+    p.maxDistance = 75 // Zwiększone z 50
+    p.rolloffFactor = 1.5 // Zmniejszone z 1.5: dźwięk delikatniej cichnie przy odchodzeniu w dal
     p.coneInnerAngle = 360
     p.coneOuterAngle = 360
     p.setPosition(pos.x, pos.y, pos.z)
@@ -590,7 +590,7 @@ export class AudioEngine {
 
   setDialogLevel(val: number): void {
     this.dialogLevelValue = val
-    if (this.dialogGain) this.dialogGain.gain.value = val
+    if (this.dialogGain) this.dialogGain.gain.value = val * 2.0 // Aplikujemy to samo wzmocnienie do suwaka w UI
     this.onStateChange({ dialogLevel: val })
   }
 

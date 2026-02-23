@@ -1,3 +1,8 @@
+export interface SpeakerPosition2D {
+  x: number
+  z: number
+}
+
 export interface TrackItem {
   id: string
   order: number
@@ -27,6 +32,16 @@ export interface Interview {
    * Defaults to "ambient.wav" if omitted.
    */
   ambientFile?: string
+  /**
+   * Per-interview speaker positions in world space.
+   * Each interview can define unique scene geometry.
+   */
+  speakerAPos: SpeakerPosition2D
+  speakerBPos: SpeakerPosition2D
+  /**
+   * Optional: listener start position. Defaults to { x: 0, z: 4 }.
+   */
+  listenerStart?: SpeakerPosition2D
   tracks: TrackItem[]
   speakerA: { name: string; role: string }
   speakerB: { name: string; role: string }
@@ -42,7 +57,10 @@ export const interviews: Interview[] = [
     icon: "🏙️",
     color: "#6366f1",
     ambientDescription: "Busy intersection, tram bells, distant construction",
-    // ambientFile: 'ambient.wav',  // default — no need to set explicitly
+    // Street interview — speakers on opposite sides of the road
+    speakerAPos: { x: -4, z: -2 },
+    speakerBPos: { x: 4, z: -2 },
+    listenerStart: { x: 0, z: 4 },
     speakerA: { name: "Maria Kowalska", role: "Journalist" },
     speakerB: { name: "Prof. Jan Nowak", role: "Acoustic Architect" },
     tracks: [
@@ -106,6 +124,10 @@ export const interviews: Interview[] = [
     color: "#22c55e",
     ambientDescription:
       "Dense forest, birdsong, wind through canopy, distant stream",
+    // Forest clearing — speakers closer together, more intimate
+    speakerAPos: { x: -2, z: -3 },
+    speakerBPos: { x: 2, z: -4 },
+    listenerStart: { x: 0, z: 3 },
     speakerA: { name: "Tomasz Wiśniewski", role: "Journalist" },
     speakerB: { name: "Dr. Anna Leśna", role: "Ecologist" },
     tracks: [
@@ -176,6 +198,10 @@ export const interviews: Interview[] = [
     icon: "⚓",
     color: "#0ea5e9",
     ambientDescription: "Harbor ambience, ship horns, seagulls, waves, cranes",
+    // Harbor pier — speaker B further away (on a ship), wide stereo
+    speakerAPos: { x: -2, z: -1 },
+    speakerBPos: { x: 5, z: -5 },
+    listenerStart: { x: 0, z: 5 },
     speakerA: { name: "Karol Morski", role: "Journalist" },
     speakerB: { name: "Cap. Ewa Portowa", role: "Harbor Master" },
     tracks: [
@@ -232,6 +258,10 @@ export const interviews: Interview[] = [
     color: "#f59e0b",
     ambientDescription:
       "Metro station, train arrivals, announcements, crowd murmur",
+    // Metro platform — speakers along the platform, linear layout
+    speakerAPos: { x: -5, z: -3 },
+    speakerBPos: { x: 3, z: -1 },
+    listenerStart: { x: -1, z: 5 },
     speakerA: { name: "Oskar Hamerski", role: "Pytający" },
     speakerB: { name: "Krzysztof Garbaczewski", role: "Reżyser" },
     tracks: [
@@ -311,6 +341,10 @@ export const interviews: Interview[] = [
     color: "#ec4899",
     ambientDescription:
       "Cathedral interior, organ drone, footsteps, whispered prayers",
+    // Cathedral nave — speakers far apart, huge reverberant space
+    speakerAPos: { x: -6, z: -6 },
+    speakerBPos: { x: 6, z: -4 },
+    listenerStart: { x: 0, z: 6 },
     speakerA: { name: "Zofia Duchowa", role: "Journalist" },
     speakerB: { name: "Fr. Marek Kościelny", role: "Church Historian" },
     tracks: [

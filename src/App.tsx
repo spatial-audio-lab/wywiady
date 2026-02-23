@@ -56,8 +56,21 @@ export function App() {
     async (interview: Interview) => {
       if (!audioReady) await handleStartAudio()
       setSelectedInterview(interview)
+
+      // Reset listener to interview-specific start position
+      const start = interview.listenerStart ?? { x: 0, z: 4 }
+      setListenerX(start.x)
+      setListenerZ(start.z)
+      setListenerAngle(0)
+
       if (engineRef.current) {
-        // ← Pass all track fields including filename so the engine can fetch real files
+        // Update audio engine speaker positions (3D: y=0)
+        engineRef.current.setSpeakerPositions(
+          { x: interview.speakerAPos.x, y: 0, z: interview.speakerAPos.z },
+          { x: interview.speakerBPos.x, y: 0, z: interview.speakerBPos.z },
+        )
+        engineRef.current.updateListenerPosition(start.x, start.z, 0)
+
         const tracks = interview.tracks.map((t) => ({
           speaker: t.speaker,
           durationMs: t.durationMs,
@@ -138,11 +151,12 @@ export function App() {
               Interactive Ambisonic Reportage
             </h1>
             <p className="text-sm text-white/30 mb-2">
-              Version 2.0 — Spatial Audio Experience
+              Version 2.1 — Spatial Audio Experience
             </p>
             <p className="text-xs text-white/20 mb-6 leading-relaxed max-w-sm mx-auto">
               Immerse yourself in 5 spatial interviews. Navigate the sound space
-              using keyboard controls and experience HRTF binaural rendering.
+              using keyboard, mouse, or touch controls and experience HRTF
+              binaural rendering.
             </p>
 
             {/* Control preview */}
@@ -176,6 +190,12 @@ export function App() {
                   </kbd>
                 </div>
                 <span>Rotate</span>
+              </div>
+              <div className="text-center">
+                <div className="flex items-center justify-center mb-1.5 h-[22px]">
+                  <span className="text-[14px]">🖱️</span>
+                </div>
+                <span>Drag &amp; Scroll</span>
               </div>
             </div>
 
@@ -223,8 +243,8 @@ export function App() {
               {/* ── Map View ── */}
               <div className="flex-1 relative">
                 <MapView
-                  speakerAPos={{ x: -3, z: -3 }}
-                  speakerBPos={{ x: 3, z: -3 }}
+                  speakerAPos={selectedInterview.speakerAPos}
+                  speakerBPos={selectedInterview.speakerBPos}
                   speakerALabel={selectedInterview.speakerA.name}
                   speakerBLabel={selectedInterview.speakerB.name}
                   listenerX={listenerX}

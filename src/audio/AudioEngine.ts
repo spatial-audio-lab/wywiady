@@ -23,6 +23,9 @@ export interface AudioEngineState {
   ambientLevel: number
   dialogLevel: number
   isLoadingTrack: boolean
+  // ── Track timing ──────────────────────────────────────────────────────────
+  trackElapsedMs: number // ile ms upłynęło od początku bieżącego tracku
+  trackDurationMs: number // rzeczywisty czas trwania z buffer.duration (ms)
 }
 
 export interface TrackQueueItem {
@@ -59,6 +62,11 @@ export class AudioEngine {
   private trackQueue: TrackQueueItem[] = []
   private trackTimer: ReturnType<typeof setTimeout> | null = null
   public currentInterviewId: string | null = null
+
+  // ── Track timing ───────────────────────────────────────────────────────────
+  private trackStartCtxTime = 0 // ctx.currentTime w chwili startu tracku
+  private trackDurationSec = 0 // buffer.duration w sekundach
+  private trackTicker: ReturnType<typeof setInterval> | null = null
 
   // ── Cache ──────────────────────────────────────────────────────────────────
   private bufferCache: Map<string, AudioBuffer> = new Map()
@@ -107,7 +115,7 @@ export class AudioEngine {
     this.ambientGain.connect(compressor)
 
     this.dialogGain = this.ctx.createGain()
-    this.dialogGain.gain.value = this.dialogLevelValue * 2.0 // Wzmocnienie maksymalnej głośności mówców (x2.5)
+    this.dialogGain.gain.value = this.dialogLevelValue * 2.0
     this.dialogGain.connect(compressor)
 
     this.pannerA = this.makePanner(this.speakerAPos)
@@ -120,9 +128,9 @@ export class AudioEngine {
     if (this.ambPanners.length === 0) {
       for (let i = 0; i < 4; i++) {
         const p = this.ctx.createPanner()
-        p.panningModel = "HRTF" // Zapewnia poprawny odbiór przestrzenny i rotację!
+        p.panningModel = "HRTF"
         p.distanceModel = "linear"
-        p.refDistance = 100 // Duży dystans bazowy, by tło nie zmieniało głośności przy ruchu
+        p.refDistance = 100
         p.maxDistance = 1000
         p.connect(this.ambientGain)
         this.ambPanners.push(p)
@@ -144,9 +152,9 @@ export class AudioEngine {
     const p = this.ctx!.createPanner()
     p.panningModel = "HRTF"
     p.distanceModel = "inverse"
-    p.refDistance = 2.0 // Zwiększone z 1: tworzy szerszą strefę pełnego, najgłośniejszego dźwięku wokół mówcy
-    p.maxDistance = 75 // Zwiększone z 50
-    p.rolloffFactor = 1.5 // Zmniejszone z 1.5: dźwięk delikatniej cichnie przy odchodzeniu w dal
+    p.refDistance = 2.0
+    p.maxDistance = 75
+    p.rolloffFactor = 1.5
     p.coneInnerAngle = 360
     p.coneOuterAngle = 360
     p.setPosition(pos.x, pos.y, pos.z)
@@ -199,6 +207,30 @@ export class AudioEngine {
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
+  // Track timing ticker
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  private startTicker(): void {
+    this.stopTicker()
+    this.trackTicker = setInterval(() => {
+      if (!this.ctx || !this.isPlaying) return
+      const elapsed = (this.ctx.currentTime - this.trackStartCtxTime) * 1000
+      const clamped = Math.min(elapsed, this.trackDurationSec * 1000)
+      this.onStateChange({
+        trackElapsedMs: Math.max(0, clamped),
+        trackDurationMs: this.trackDurationSec * 1000,
+      })
+    }, 250)
+  }
+
+  private stopTicker(): void {
+    if (this.trackTicker) {
+      clearInterval(this.trackTicker)
+      this.trackTicker = null
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
   // Listener & speaker positioning
   // ═══════════════════════════════════════════════════════════════════════════
 
@@ -228,8 +260,6 @@ export class AudioEngine {
       listener.setOrientation(fx, 0, fz, 0, 1, 0)
     }
 
-    // Aktualizacja wirtualnych głośników FOA — podążają za słuchaczem zachowując formę "sfery"
-    // Odległość: 10 jednostek od słuchacza (pozwala to na idealne działanie HRTF dla rotacji sceny)
     if (this.ambPanners.length === 4) {
       this.ambPanners[0].setPosition(x - 10, 0, z - 10) // Przedni Lewy (FL)
       this.ambPanners[1].setPosition(x + 10, 0, z - 10) // Przedni Prawy (FR)
@@ -269,7 +299,6 @@ export class AudioEngine {
       src.buffer = buffer
       src.loop = true
 
-      // Sprawdzenie, czy jest to plik Ambisonic (FOA), 4 kanały (W, Y, Z, X - format AmbiX)
       if (buffer.numberOfChannels === 4 && this.ambPanners.length === 4) {
         console.info(
           `[AudioEngine] Włączono dekoder FOA Ambisonics dla pliku ${filename}`,
@@ -277,12 +306,6 @@ export class AudioEngine {
 
         const splitter = this.ctx.createChannelSplitter(4)
         src.connect(splitter)
-
-        // Matryca decodująca SN3D dla 4 wirtualnych głośników:
-        // FL = W + X + Y
-        // FR = W + X - Y
-        // BL = W - X + Y
-        // BR = W - X - Y
 
         const flSum = this.ctx.createGain()
         flSum.connect(this.ambPanners[0])
@@ -293,7 +316,6 @@ export class AudioEngine {
         const brSum = this.ctx.createGain()
         brSum.connect(this.ambPanners[3])
 
-        // Obniżenie bazowego zysku, by nie doprowadzić do clipowania sumy matematycznej 3 sygnałów
         const gainLevel = 0.35
         flSum.gain.value = gainLevel
         frSum.gain.value = gainLevel
@@ -309,7 +331,7 @@ export class AudioEngine {
         wGain.connect(blSum)
         wGain.connect(brSum)
 
-        // Kanał 1 (Y - L/P) -> Dodatnie to Lewa strona
+        // Kanał 1 (Y - L/P)
         const yPos = this.ctx.createGain()
         yPos.gain.value = 1.0
         const yNeg = this.ctx.createGain()
@@ -317,11 +339,11 @@ export class AudioEngine {
         splitter.connect(yPos, 1)
         splitter.connect(yNeg, 1)
         yPos.connect(flSum)
-        yPos.connect(blSum) // Lewa
+        yPos.connect(blSum)
         yNeg.connect(frSum)
-        yNeg.connect(brSum) // Prawa
+        yNeg.connect(brSum)
 
-        // Kanał 3 (X - Przód/Tył) -> Dodatnie to Przód
+        // Kanał 3 (X - Przód/Tył)
         const xPos = this.ctx.createGain()
         xPos.gain.value = 1.0
         const xNeg = this.ctx.createGain()
@@ -329,13 +351,11 @@ export class AudioEngine {
         splitter.connect(xPos, 3)
         splitter.connect(xNeg, 3)
         xPos.connect(flSum)
-        xPos.connect(frSum) // Przód
+        xPos.connect(frSum)
         xNeg.connect(blSum)
-        xNeg.connect(brSum) // Tył
+        xNeg.connect(brSum)
 
-        // Ignorujemy kanał 2 (Z) ponieważ poruszamy się w horyzontalnym układzie współrzędnych 2D.
-
-        // Zapisanie node'ów do zwolnienia przy stopowaniu
+        // Kanał 2 (Z) ignorowany — ruch horyzontalny 2D
         this.ambientNodes = [
           splitter,
           wGain,
@@ -349,7 +369,6 @@ export class AudioEngine {
           brSum,
         ]
       } else {
-        // Fallback dla zwykłych plików stereo/mono (lub jeśli PannerNodes nie są gotowe)
         src.connect(this.ambientGain)
       }
 
@@ -441,6 +460,7 @@ export class AudioEngine {
   // ═══════════════════════════════════════════════════════════════════════════
 
   private stopCurrentDialog(): void {
+    this.stopTicker()
     if (this.trackTimer) {
       clearTimeout(this.trackTimer)
       this.trackTimer = null
@@ -459,7 +479,12 @@ export class AudioEngine {
     if (!this.ctx || index >= this.trackQueue.length) {
       this.isPlaying = false
       this.currentTrackIndex = -1
-      this.onStateChange({ isPlaying: false, currentTrackIndex: -1 })
+      this.onStateChange({
+        isPlaying: false,
+        currentTrackIndex: -1,
+        trackElapsedMs: 0,
+        trackDurationMs: 0,
+      })
       return
     }
 
@@ -473,6 +498,8 @@ export class AudioEngine {
       isPlaying: true,
       currentTrackIndex: index,
       isLoadingTrack: true,
+      trackElapsedMs: 0,
+      trackDurationMs: 0,
     })
 
     let buffer: AudioBuffer | null = null
@@ -496,8 +523,16 @@ export class AudioEngine {
     this.dialogSource.connect(panner)
     this.dialogSource.start()
 
-    const durationMs = buffer.duration * 1000
+    // ── Timing: zapamiętaj punkt startowy i uruchom ticker ─────────────────
+    this.trackStartCtxTime = this.ctx.currentTime
+    this.trackDurationSec = buffer.duration
+    this.onStateChange({
+      trackElapsedMs: 0,
+      trackDurationMs: buffer.duration * 1000,
+    })
+    this.startTicker()
 
+    // Prefetch następnego tracku
     if (this.currentInterviewId && index + 1 < this.trackQueue.length) {
       const next = this.trackQueue[index + 1]
       if (next.filename) {
@@ -507,6 +542,7 @@ export class AudioEngine {
       }
     }
 
+    const durationMs = buffer.duration * 1000
     this.trackTimer = setTimeout(() => {
       if (this.isPlaying && this.currentTrackIndex === index) {
         this.playTrackAsync(index + 1)
@@ -539,6 +575,8 @@ export class AudioEngine {
       isPlaying: false,
       currentTrackIndex: -1,
       isLoadingTrack: false,
+      trackElapsedMs: 0,
+      trackDurationMs: 0,
     })
   }
 
@@ -553,7 +591,10 @@ export class AudioEngine {
   pause(): void {
     this.isPlaying = false
     this.stopCurrentDialog()
-    this.onStateChange({ isPlaying: false })
+    this.onStateChange({
+      isPlaying: false,
+      trackElapsedMs: 0,
+    })
   }
 
   stop(): void {
@@ -561,7 +602,12 @@ export class AudioEngine {
     this.currentTrackIndex = -1
     this.stopCurrentDialog()
     this.stopAmbient()
-    this.onStateChange({ isPlaying: false, currentTrackIndex: -1 })
+    this.onStateChange({
+      isPlaying: false,
+      currentTrackIndex: -1,
+      trackElapsedMs: 0,
+      trackDurationMs: 0,
+    })
   }
 
   skipTo(index: number): void {
@@ -590,7 +636,7 @@ export class AudioEngine {
 
   setDialogLevel(val: number): void {
     this.dialogLevelValue = val
-    if (this.dialogGain) this.dialogGain.gain.value = val * 2.0 // Aplikujemy to samo wzmocnienie do suwaka w UI
+    if (this.dialogGain) this.dialogGain.gain.value = val * 2.0
     this.onStateChange({ dialogLevel: val })
   }
 
@@ -606,10 +652,13 @@ export class AudioEngine {
       ambientLevel: this.ambientLevelValue,
       dialogLevel: this.dialogLevelValue,
       isLoadingTrack: false,
+      trackElapsedMs: 0,
+      trackDurationMs: this.trackDurationSec * 1000,
     }
   }
 
   destroy(): void {
+    this.stopTicker()
     this.stop()
     this.bufferCache.clear()
     if (this.ctx) {

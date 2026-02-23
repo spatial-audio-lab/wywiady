@@ -3,6 +3,7 @@ import { Sidebar } from "./components/Sidebar"
 import { Playlist } from "./components/Playlist"
 import { MapView } from "./components/MapView"
 import { TransportControls } from "./components/TransportControls"
+import { InterviewInfoPanel } from "./components/InterviewInfoPanel"
 import { AudioEngine } from "./audio/AudioEngine"
 import { type Interview, interviews } from "./data/interviews"
 
@@ -21,6 +22,9 @@ export function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [audioReady, setAudioReady] = useState(false)
   const [showWelcome, setShowWelcome] = useState(true)
+  // ── Track timing ────────────────────────────────────────────────────────────
+  const [trackElapsedMs, setTrackElapsedMs] = useState(0)
+  const [trackDurationMs, setTrackDurationMs] = useState(0)
 
   const engineRef = useRef<AudioEngine | null>(null)
 
@@ -37,6 +41,11 @@ export function App() {
         setListenerAngle(state.listenerAngle)
       if (state.ambientLevel !== undefined) setAmbientLevel(state.ambientLevel)
       if (state.dialogLevel !== undefined) setDialogLevel(state.dialogLevel)
+      // ── Timing ──────────────────────────────────────────────────────────────
+      if (state.trackElapsedMs !== undefined)
+        setTrackElapsedMs(state.trackElapsedMs)
+      if (state.trackDurationMs !== undefined)
+        setTrackDurationMs(state.trackDurationMs)
     })
     engineRef.current = engine
     return () => {
@@ -64,7 +73,6 @@ export function App() {
       setListenerAngle(0)
 
       if (engineRef.current) {
-        // Update audio engine speaker positions (3D: y=0)
         engineRef.current.setSpeakerPositions(
           { x: interview.speakerAPos.x, y: 0, z: interview.speakerAPos.z },
           { x: interview.speakerBPos.x, y: 0, z: interview.speakerBPos.z },
@@ -79,7 +87,6 @@ export function App() {
         }))
         const idx = interviews.findIndex((i) => i.id === interview.id)
 
-        // Zaktualizowane przekazywanie zmiennej ambientFile (wsparcie dla .webm)
         await engineRef.current.loadInterview(
           interview.id,
           tracks,
@@ -262,46 +269,16 @@ export function App() {
                   onListenerMove={handleListenerMove}
                 />
 
-                {/* Interview title overlay */}
-                <div className="absolute top-4 left-4 pointer-events-none">
-                  <div className="bg-black/55 backdrop-blur-md rounded-xl px-4 py-3 max-w-xs border border-white/5">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-lg">{selectedInterview.icon}</span>
-                      <h2 className="text-sm font-bold text-white">
-                        {selectedInterview.title}
-                      </h2>
-                    </div>
-                    <p className="text-[10px] text-white/30">
-                      {selectedInterview.subtitle} ·{" "}
-                      {selectedInterview.location}
-                    </p>
-                    {currentTrackIndex >= 0 &&
-                      currentTrackIndex < selectedInterview.tracks.length && (
-                        <div className="mt-2 flex items-center gap-2">
-                          {isLoadingTrack ? (
-                            <span className="w-2 h-2 rounded-full border border-white/40 border-t-white animate-spin" />
-                          ) : (
-                            <span
-                              className="w-2 h-2 rounded-full animate-pulse"
-                              style={{
-                                backgroundColor:
-                                  selectedInterview.tracks[currentTrackIndex]
-                                    .speaker === "A"
-                                    ? "#ff6b6b"
-                                    : "#4ecdc4",
-                              }}
-                            />
-                          )}
-                          <span className="text-xs text-white/60">
-                            {isLoadingTrack
-                              ? "Ładowanie…"
-                              : selectedInterview.tracks[currentTrackIndex]
-                                  .label}
-                          </span>
-                        </div>
-                      )}
-                  </div>
-                </div>
+                {/* ── Interview info panel (zastępuje stary overlay) ── */}
+                <InterviewInfoPanel
+                  interview={selectedInterview}
+                  currentTrackIndex={currentTrackIndex}
+                  isLoadingTrack={isLoadingTrack}
+                  isPlaying={isPlaying}
+                  trackElapsedMs={trackElapsedMs}
+                  trackDurationMs={trackDurationMs}
+                  accentColor={accentColor}
+                />
               </div>
 
               {/* ── Playlist panel ── */}

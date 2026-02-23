@@ -148,15 +148,15 @@ export function App() {
             </div>
 
             <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-3">
-              Interactive Ambisonic Reportage
+              Spatial Audio Lab - Archiwum Wywiadów
             </h1>
             <p className="text-sm text-white/30 mb-2">
-              Version 2.1 — Spatial Audio Experience
+              Wersja 2.1 — Doświadczenie dźwięku przestrzennego
             </p>
             <p className="text-xs text-white/20 mb-6 leading-relaxed max-w-sm mx-auto">
-              Immerse yourself in 5 spatial interviews. Navigate the sound space
-              using keyboard, mouse, or touch controls and experience HRTF
-              binaural rendering.
+              Zanurz się w 5 wywiadach przestrzennych. Poruszaj się po
+              przestrzeni dźwiękowej za pomocą klawiatury, myszy lub ekranu
+              dotykowego i doświadcz dźwięku przestrzennego w technice HRTF.
             </p>
 
             {/* Control preview */}

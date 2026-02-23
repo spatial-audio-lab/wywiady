@@ -11,6 +11,7 @@ interface MapViewProps {
   activeSpeaker: "A" | "B" | null
   accentColor: string
   ambientDesc: string
+  binaural?: boolean
   onListenerMove: (x: number, z: number, angle: number) => void
 }
 
@@ -230,6 +231,28 @@ function drawDistLine(
   c.restore()
 }
 
+// Linia trójkąta nagraniowego (dla trybu binaural)
+function drawBinauralTriangleLine(
+  c: CanvasRenderingContext2D,
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+  clr: string,
+  dpr: number,
+) {
+  c.save()
+  c.strokeStyle = clr
+  c.lineWidth = 1.5 * dpr
+  c.setLineDash([5 * dpr, 4 * dpr])
+  c.beginPath()
+  c.moveTo(x1, y1)
+  c.lineTo(x2, y2)
+  c.stroke()
+  c.setLineDash([])
+  c.restore()
+}
+
 function drawListener(
   c: CanvasRenderingContext2D,
   sx: number,
@@ -269,7 +292,7 @@ function drawListener(
   c.fillStyle = "rgba(150,195,255,0.75)"
   c.font = `${Math.round(10 * dpr)}px system-ui, sans-serif`
   c.textAlign = "center"
-  c.fillText("🎧 YOU", sx, sy + 26 * dpr)
+  c.fillText("🎙️ MIC", sx, sy + 26 * dpr)
 }
 
 function drawCompass(
@@ -328,6 +351,78 @@ function drawVignette(c: CanvasRenderingContext2D, w: number, h: number) {
   c.fillRect(0, 0, w, h)
 }
 
+// Badge informujący o trybie binaural (górny lewy róg)
+function drawBinauralBadge(
+  c: CanvasRenderingContext2D,
+  w: number,
+  dpr: number,
+  accentColor: string,
+) {
+  const badgeX = 16 * dpr
+  const badgeY = 16 * dpr
+  const badgeW = 272 * dpr
+  const badgeH = 36 * dpr
+  const r = 8 * dpr
+
+  c.save()
+
+  // tło z zaokrąglonymi rogami
+  c.beginPath()
+  c.moveTo(badgeX + r, badgeY)
+  c.lineTo(badgeX + badgeW - r, badgeY)
+  c.quadraticCurveTo(badgeX + badgeW, badgeY, badgeX + badgeW, badgeY + r)
+  c.lineTo(badgeX + badgeW, badgeY + badgeH - r)
+  c.quadraticCurveTo(
+    badgeX + badgeW,
+    badgeY + badgeH,
+    badgeX + badgeW - r,
+    badgeY + badgeH,
+  )
+  c.lineTo(badgeX + r, badgeY + badgeH)
+  c.quadraticCurveTo(badgeX, badgeY + badgeH, badgeX, badgeY + badgeH - r)
+  c.lineTo(badgeX, badgeY + r)
+  c.quadraticCurveTo(badgeX, badgeY, badgeX + r, badgeY)
+  c.closePath()
+
+  // kolor badge'a oparty na accentColor
+  const n = parseInt(accentColor.slice(1), 16)
+  const rr = (n >> 16) & 255
+  const gg = (n >> 8) & 255
+  const bb = n & 255
+  c.fillStyle = `rgba(${rr},${gg},${bb},0.18)`
+  c.strokeStyle = `rgba(${rr},${gg},${bb},0.6)`
+  c.lineWidth = 1 * dpr
+  c.fill()
+  c.stroke()
+
+  // tekst
+  c.fillStyle = "rgba(255, 210, 160, 0.95)"
+  c.font = `${11 * dpr}px 'Outfit', system-ui, sans-serif`
+  c.textBaseline = "middle"
+  c.textAlign = "left"
+  c.fillText(
+    "🎧  Binaural · przestrzeń zakodowana w nagraniu",
+    badgeX + 12 * dpr,
+    badgeY + badgeH / 2,
+  )
+
+  c.restore()
+
+  // druga linia — podpowiedź o trójkącie nagraniowym
+  const line2Y = badgeY + badgeH + 8 * dpr
+  c.save()
+  c.fillStyle = "rgba(255,255,255,0.2)"
+  c.font = `${9 * dpr}px system-ui, sans-serif`
+  c.textBaseline = "top"
+  c.textAlign = "left"
+  c.fillText(
+    "Układ nagraniowy: A ←  3,5 m  → B · mikrofon 1 m od osi",
+    badgeX,
+    line2Y,
+  )
+  c.restore()
+}
+
 // ══════════════════════════════════════════════════════════
 //  Component
 // ══════════════════════════════════════════════════════════
@@ -343,6 +438,7 @@ export function MapView({
   activeSpeaker,
   accentColor,
   ambientDesc,
+  binaural = false,
   onListenerMove,
 }: MapViewProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -389,6 +485,7 @@ export function MapView({
     activeSpeaker,
     accentColor,
     ambientDesc,
+    binaural,
     onListenerMove,
   })
 
@@ -402,11 +499,12 @@ export function MapView({
       activeSpeaker,
       accentColor,
       ambientDesc,
+      binaural,
       onListenerMove,
     }
   })
 
-  // sync position from parent (e.g. interview change resets position)
+  // sync position from parent (interview change resets position)
   useEffect(() => {
     stateRef.current.x = listenerX
     stateRef.current.z = listenerZ
@@ -430,6 +528,8 @@ export function MapView({
       "arrowright",
     ])
     const down = (ev: KeyboardEvent) => {
+      // Blokada ruchu w trybie binaural
+      if (propsRef.current.binaural) return
       if (
         ev.target instanceof HTMLInputElement ||
         ev.target instanceof HTMLTextAreaElement
@@ -452,16 +552,21 @@ export function MapView({
   }, [])
 
   // ─── Mouse handlers ───
-  const onMouseDown = useCallback((ev: React.MouseEvent) => {
-    if (ev.button === 0) {
-      mouseRef.current.isLeftDrag = true
-      mouseRef.current.lastX = ev.clientX
-      mouseRef.current.lastY = ev.clientY
-    } else if (ev.button === 2) {
-      mouseRef.current.isRightDrag = true
-      mouseRef.current.lastX = ev.clientX
-    }
-  }, [])
+  const onMouseDown = useCallback(
+    (ev: React.MouseEvent) => {
+      // Blokada ruchu w trybie binaural
+      if (binaural) return
+      if (ev.button === 0) {
+        mouseRef.current.isLeftDrag = true
+        mouseRef.current.lastX = ev.clientX
+        mouseRef.current.lastY = ev.clientY
+      } else if (ev.button === 2) {
+        mouseRef.current.isRightDrag = true
+        mouseRef.current.lastX = ev.clientX
+      }
+    },
+    [binaural],
+  )
 
   const onMouseMove = useCallback((ev: React.MouseEvent) => {
     const m = mouseRef.current
@@ -470,7 +575,6 @@ export function MapView({
     if (m.isLeftDrag) {
       const dx = ev.clientX - m.lastX
       const dy = ev.clientY - m.lastY
-      // Move in world space: right = +x, down = +z
       st.x += dx * MOUSE_MOVE_SENSITIVITY
       st.z += dy * MOUSE_MOVE_SENSITIVITY
       st.x = Math.max(-BOUNDS, Math.min(BOUNDS, st.x))
@@ -498,53 +602,62 @@ export function MapView({
     mouseRef.current.isRightDrag = false
   }, [])
 
-  const onWheel = useCallback((ev: React.WheelEvent) => {
-    ev.preventDefault()
-    const st = stateRef.current
-    st.angle += ev.deltaY * WHEEL_ROT_SENSITIVITY
-    propsRef.current.onListenerMove(st.x, st.z, st.angle)
-  }, [])
+  const onWheel = useCallback(
+    (ev: React.WheelEvent) => {
+      // Blokada obrotu w trybie binaural
+      if (binaural) return
+      ev.preventDefault()
+      const st = stateRef.current
+      st.angle += ev.deltaY * WHEEL_ROT_SENSITIVITY
+      propsRef.current.onListenerMove(st.x, st.z, st.angle)
+    },
+    [binaural],
+  )
 
   const onContextMenu = useCallback((ev: React.MouseEvent) => {
-    ev.preventDefault() // prevent right-click menu on canvas
+    ev.preventDefault()
   }, [])
 
-  // ─── Touch handlers for virtual joystick ───
-  const onTouchStart = useCallback((ev: React.TouchEvent) => {
-    const box = containerRef.current?.getBoundingClientRect()
-    if (!box) return
+  // ─── Touch handlers ───
+  const onTouchStart = useCallback(
+    (ev: React.TouchEvent) => {
+      // Blokada dotyku w trybie binaural
+      if (binaural) return
+      const box = containerRef.current?.getBoundingClientRect()
+      if (!box) return
 
-    for (let i = 0; i < ev.changedTouches.length; i++) {
-      const t = ev.changedTouches[i]
-      const relX = t.clientX - box.left
+      for (let i = 0; i < ev.changedTouches.length; i++) {
+        const t = ev.changedTouches[i]
+        const relX = t.clientX - box.left
 
-      if (relX < box.width * 0.5) {
-        // Left half → movement joystick
-        if (!joystickRef.current.active) {
-          joystickRef.current = {
-            active: true,
-            touchId: t.identifier,
-            originX: t.clientX,
-            originY: t.clientY,
-            dx: 0,
-            dy: 0,
+        if (relX < box.width * 0.5) {
+          if (!joystickRef.current.active) {
+            joystickRef.current = {
+              active: true,
+              touchId: t.identifier,
+              originX: t.clientX,
+              originY: t.clientY,
+              dx: 0,
+              dy: 0,
+            }
           }
-        }
-      } else {
-        // Right half → rotation swipe
-        if (!rotTouchRef.current.active) {
-          rotTouchRef.current = {
-            active: true,
-            touchId: t.identifier,
-            lastX: t.clientX,
+        } else {
+          if (!rotTouchRef.current.active) {
+            rotTouchRef.current = {
+              active: true,
+              touchId: t.identifier,
+              lastX: t.clientX,
+            }
           }
         }
       }
-    }
-  }, [])
+    },
+    [binaural],
+  )
 
   const onTouchMove = useCallback((ev: React.TouchEvent) => {
-    ev.preventDefault() // prevent scroll
+    ev.preventDefault()
+    if (propsRef.current.binaural) return
 
     for (let i = 0; i < ev.changedTouches.length; i++) {
       const t = ev.changedTouches[i]
@@ -554,7 +667,6 @@ export function MapView({
       if (js.active && t.identifier === js.touchId) {
         const dx = t.clientX - js.originX
         const dy = t.clientY - js.originY
-        // Clamp to joystick radius
         const maxR = JOYSTICK_SIZE / 2
         const len = Math.sqrt(dx * dx + dy * dy)
         if (len > maxR) {
@@ -610,6 +722,7 @@ export function MapView({
     const box = containerRef.current
     if (!cvs || !box) return
     const ctx = cvs.getContext("2d")!
+
     let dpr = window.devicePixelRatio || 1
 
     const resize = () => {
@@ -634,59 +747,59 @@ export function MapView({
       const pr = propsRef.current
       st.time += dt
 
-      // ─── Input: keyboard ───
-      const k = keysRef.current
-      let moved = false
+      // ─── Input: keyboard (tylko gdy nie binaural) ───
+      if (!pr.binaural) {
+        const k = keysRef.current
+        let moved = false
 
-      if (k.has("w") || k.has("arrowup")) {
-        st.x += Math.sin(st.angle) * MOVE_SPD * dt
-        st.z -= Math.cos(st.angle) * MOVE_SPD * dt
-        moved = true
-      }
-      if (k.has("s") || k.has("arrowdown")) {
-        st.x -= Math.sin(st.angle) * MOVE_SPD * dt
-        st.z += Math.cos(st.angle) * MOVE_SPD * dt
-        moved = true
-      }
-      if (k.has("a")) {
-        st.x -= Math.cos(st.angle) * MOVE_SPD * dt
-        st.z -= Math.sin(st.angle) * MOVE_SPD * dt
-        moved = true
-      }
-      if (k.has("d")) {
-        st.x += Math.cos(st.angle) * MOVE_SPD * dt
-        st.z += Math.sin(st.angle) * MOVE_SPD * dt
-        moved = true
-      }
-      if (k.has("q") || k.has("arrowleft")) {
-        st.angle -= ROT_SPD * dt
-        moved = true
-      }
-      if (k.has("e") || k.has("arrowright")) {
-        st.angle += ROT_SPD * dt
-        moved = true
-      }
-
-      // ─── Input: virtual joystick (touch) ───
-      const js = joystickRef.current
-      if (js.active) {
-        const len = Math.sqrt(js.dx * js.dx + js.dy * js.dy)
-        if (len > JOYSTICK_DEADZONE) {
-          const norm = len / (JOYSTICK_SIZE / 2) // 0..1
-          const speed = MOVE_SPD * norm
-          // Joystick dx/dy is in screen space: right = +dx, down = +dy
-          // Map to world: +dx = +x, +dy = +z
-          st.x += (js.dx / len) * speed * dt
-          st.z += (js.dy / len) * speed * dt
+        if (k.has("w") || k.has("arrowup")) {
+          st.x += Math.sin(st.angle) * MOVE_SPD * dt
+          st.z -= Math.cos(st.angle) * MOVE_SPD * dt
           moved = true
         }
+        if (k.has("s") || k.has("arrowdown")) {
+          st.x -= Math.sin(st.angle) * MOVE_SPD * dt
+          st.z += Math.cos(st.angle) * MOVE_SPD * dt
+          moved = true
+        }
+        if (k.has("a")) {
+          st.x -= Math.cos(st.angle) * MOVE_SPD * dt
+          st.z -= Math.sin(st.angle) * MOVE_SPD * dt
+          moved = true
+        }
+        if (k.has("d")) {
+          st.x += Math.cos(st.angle) * MOVE_SPD * dt
+          st.z += Math.sin(st.angle) * MOVE_SPD * dt
+          moved = true
+        }
+        if (k.has("q") || k.has("arrowleft")) {
+          st.angle -= ROT_SPD * dt
+          moved = true
+        }
+        if (k.has("e") || k.has("arrowright")) {
+          st.angle += ROT_SPD * dt
+          moved = true
+        }
+
+        // ─── Input: virtual joystick (touch) ───
+        const js = joystickRef.current
+        if (js.active) {
+          const len = Math.sqrt(js.dx * js.dx + js.dy * js.dy)
+          if (len > JOYSTICK_DEADZONE) {
+            const norm = len / (JOYSTICK_SIZE / 2)
+            const speed = MOVE_SPD * norm
+            st.x += (js.dx / len) * speed * dt
+            st.z += (js.dy / len) * speed * dt
+            moved = true
+          }
+        }
+
+        // clamp
+        st.x = Math.max(-BOUNDS, Math.min(BOUNDS, st.x))
+        st.z = Math.max(-BOUNDS, Math.min(BOUNDS, st.z))
+
+        if (moved) pr.onListenerMove(st.x, st.z, st.angle)
       }
-
-      // clamp
-      st.x = Math.max(-BOUNDS, Math.min(BOUNDS, st.x))
-      st.z = Math.max(-BOUNDS, Math.min(BOUNDS, st.z))
-
-      if (moved) pr.onListenerMove(st.x, st.z, st.angle)
 
       // smooth camera
       st.camX += (st.x - st.camX) * 4 * dt
@@ -725,29 +838,66 @@ export function MapView({
       // hearing cone
       drawCone(ctx, sx(st.x), sy(st.z), st.angle, sc)
 
-      // distance lines
+      // ─── Tryb binaural: rysuj trójkąt nagraniowy ───
+      if (pr.binaural) {
+        // linia między rozmówcami A–B
+        drawBinauralTriangleLine(
+          ctx,
+          sx(pr.speakerAPos.x),
+          sy(pr.speakerAPos.z),
+          sx(pr.speakerBPos.x),
+          sy(pr.speakerBPos.z),
+          "rgba(255,255,255,0.15)",
+          dpr,
+        )
+        // linia A → mikrofon
+        drawBinauralTriangleLine(
+          ctx,
+          sx(pr.speakerAPos.x),
+          sy(pr.speakerAPos.z),
+          sx(st.x),
+          sy(st.z),
+          rgba(SPEAKER_A_CLR, 0.25),
+          dpr,
+        )
+        // linia B → mikrofon
+        drawBinauralTriangleLine(
+          ctx,
+          sx(pr.speakerBPos.x),
+          sy(pr.speakerBPos.z),
+          sx(st.x),
+          sy(st.z),
+          rgba(SPEAKER_B_CLR, 0.25),
+          dpr,
+        )
+      }
+
+      // distance lines (tylko w trybie normalnym)
       const dA = dist(st.x, st.z, pr.speakerAPos.x, pr.speakerAPos.z)
       const dB = dist(st.x, st.z, pr.speakerBPos.x, pr.speakerBPos.z)
-      drawDistLine(
-        ctx,
-        sx(st.x),
-        sy(st.z),
-        sx(pr.speakerAPos.x),
-        sy(pr.speakerAPos.z),
-        SPEAKER_A_CLR,
-        dA,
-        dpr,
-      )
-      drawDistLine(
-        ctx,
-        sx(st.x),
-        sy(st.z),
-        sx(pr.speakerBPos.x),
-        sy(pr.speakerBPos.z),
-        SPEAKER_B_CLR,
-        dB,
-        dpr,
-      )
+
+      if (!pr.binaural) {
+        drawDistLine(
+          ctx,
+          sx(st.x),
+          sy(st.z),
+          sx(pr.speakerAPos.x),
+          sy(pr.speakerAPos.z),
+          SPEAKER_A_CLR,
+          dA,
+          dpr,
+        )
+        drawDistLine(
+          ctx,
+          sx(st.x),
+          sy(st.z),
+          sx(pr.speakerBPos.x),
+          sy(pr.speakerBPos.z),
+          SPEAKER_B_CLR,
+          dB,
+          dpr,
+        )
+      }
 
       // speakers
       drawSpeaker(
@@ -781,28 +931,36 @@ export function MapView({
       // vignette
       drawVignette(ctx, w, h)
 
-      // compass (top-left)
+      // compass (top-left, ale w binaural przesuń żeby nie nakładał się z badge)
+      const compassOffsetY = pr.binaural ? 90 * dpr : 50 * dpr
       const compassR = 36 * dpr
-      drawCompass(ctx, 50 * dpr, 50 * dpr, compassR, st.angle, dpr)
+      drawCompass(ctx, 50 * dpr, compassOffsetY, compassR, st.angle, dpr)
 
-      // coords HUD (top-right)
-      ctx.save()
-      ctx.fillStyle = "rgba(255,255,255,0.35)"
-      ctx.font = `${Math.round(10 * dpr)}px monospace`
-      ctx.textAlign = "right"
-      const deg = ((((st.angle * 180) / Math.PI) % 360) + 360) % 360
-      ctx.fillText(
-        `X ${st.x.toFixed(1)}  Z ${st.z.toFixed(1)}`,
-        w - 16 * dpr,
-        24 * dpr,
-      )
-      ctx.fillText(`θ ${deg.toFixed(0)}°`, w - 16 * dpr, 40 * dpr)
-      ctx.fillText(
-        `d(A) ${dA.toFixed(1)}m   d(B) ${dB.toFixed(1)}m`,
-        w - 16 * dpr,
-        56 * dpr,
-      )
-      ctx.restore()
+      // coords HUD (top-right) — tylko w trybie normalnym
+      if (!pr.binaural) {
+        ctx.save()
+        ctx.fillStyle = "rgba(255,255,255,0.35)"
+        ctx.font = `${Math.round(10 * dpr)}px monospace`
+        ctx.textAlign = "right"
+        const deg = ((((st.angle * 180) / Math.PI) % 360) + 360) % 360
+        ctx.fillText(
+          `X ${st.x.toFixed(1)}  Z ${st.z.toFixed(1)}`,
+          w - 16 * dpr,
+          24 * dpr,
+        )
+        ctx.fillText(`θ ${deg.toFixed(0)}°`, w - 16 * dpr, 40 * dpr)
+        ctx.fillText(
+          `d(A) ${dA.toFixed(1)}m   d(B) ${dB.toFixed(1)}m`,
+          w - 16 * dpr,
+          56 * dpr,
+        )
+        ctx.restore()
+      }
+
+      // badge binaural (górny lewy róg)
+      if (pr.binaural) {
+        drawBinauralBadge(ctx, w, dpr, pr.accentColor)
+      }
     }
 
     frameRef.current = requestAnimationFrame(loop)
@@ -837,8 +995,8 @@ export function MapView({
         onTouchCancel={onTouchEnd}
       />
 
-      {/* ─── Virtual joystick overlay (touch devices only) ─── */}
-      {showTouchControls && (
+      {/* ─── Virtual joystick overlay (touch devices, tylko gdy nie binaural) ─── */}
+      {showTouchControls && !binaural && (
         <>
           {/* Move joystick zone indicator — bottom-left */}
           <div
@@ -906,8 +1064,8 @@ export function MapView({
         </>
       )}
 
-      {/* ─── Keyboard controls overlay (desktop only) ─── */}
-      {!showTouchControls && (
+      {/* ─── Keyboard controls overlay (desktop, tylko gdy nie binaural) ─── */}
+      {!showTouchControls && !binaural && (
         <div className="absolute bottom-4 left-4 select-none pointer-events-none">
           <div className="bg-black/50 backdrop-blur-md rounded-xl px-4 py-3 border border-white/5">
             <div className="grid grid-cols-3 gap-[3px] w-fit mx-auto mb-2">
@@ -952,7 +1110,11 @@ export function MapView({
       {/* ─── Ambient indicator ─── */}
       <div
         className="absolute bottom-4 right-4 select-none pointer-events-none"
-        style={showTouchControls ? { bottom: JOYSTICK_SIZE / 2 + 48 } : {}}
+        style={
+          showTouchControls && !binaural
+            ? { bottom: JOYSTICK_SIZE / 2 + 48 }
+            : {}
+        }
       >
         <div className="bg-black/50 backdrop-blur-md rounded-xl px-3 py-2 border border-white/5 max-w-[200px]">
           <div className="flex items-center gap-1.5 mb-1">

@@ -2,15 +2,8 @@
  * AudioEngine - Spatial audio engine for Interactive Ambisonic Reportage
  *
  * Playback pipeline:
- *   real file (fetch → decodeAudioData) ──► PannerNode (HRTF) ──► dialogGain ──► compressor ──► master ──► destination
- *   ambient file (fetch → loop)         ──────────────────────────► ambientGain ─┘
- *
- * Fallback: when a file is missing or fails to load, synthesised audio is used instead.
- *
- * Supported formats: anything the browser's decodeAudioData accepts.
- *   Chrome/Firefox/Edge: wav, webm/opus, ogg/opus, mp3, aac, flac
- *   Safari: wav, mp3, aac, m4a  (no ogg/opus — use webm instead)
- *   Recommendation: dialog → .webm (opus 64 kbps), ambient → .wav (keep PCM quality)
+ * real file (fetch → decodeAudioData) ──► PannerNode (HRTF) ──► dialogGain ──► compressor ──► master ──► destination
+ * ambient file (FOA decode do 4 wirtualnych głośników z HRTF) ──► ambientGain ─┘
  */
 
 export interface SpeakerPosition {
@@ -29,16 +22,13 @@ export interface AudioEngineState {
   speakerBPos: SpeakerPosition
   ambientLevel: number
   dialogLevel: number
-  /** true while a dialog track is being fetched/decoded */
   isLoadingTrack: boolean
 }
 
 export interface TrackQueueItem {
   speaker: "A" | "B"
-  /** Milliseconds — used as fallback duration when the real file is unavailable */
   durationMs: number
   label: string
-  /** Filename relative to the interview folder, e.g. "01_A_opening.wav" */
   filename: string
 }
 
@@ -53,10 +43,13 @@ export class AudioEngine {
   private pannerA: PannerNode | null = null
   private pannerB: PannerNode | null = null
 
+  // ── Ambisonic FOA Virtual Speakers (W, X, Y) ─────────────────────────────
+  private ambPanners: PannerNode[] = []
+  private ambientNodes: AudioNode[] = []
+
   // ── Active sources ─────────────────────────────────────────────────────────
   private ambientSource: AudioBufferSourceNode | null = null
   private dialogSource: AudioBufferSourceNode | null = null
-  /** Fallback oscillators used when real ambient file is missing */
   private ambientOscillators: OscillatorNode[] = []
   private ambientNoiseSource: AudioBufferSourceNode | null = null
 
@@ -68,9 +61,7 @@ export class AudioEngine {
   public currentInterviewId: string | null = null
 
   // ── Cache ──────────────────────────────────────────────────────────────────
-  /** Decoded buffers keyed by URL */
   private bufferCache: Map<string, AudioBuffer> = new Map()
-  /** In-flight fetch promises keyed by URL (prevents duplicate requests) */
   private pendingFetch: Map<string, Promise<AudioBuffer | null>> = new Map()
 
   // ── Spatial state ──────────────────────────────────────────────────────────
@@ -99,12 +90,10 @@ export class AudioEngine {
 
     this.ctx = new AudioContext({ sampleRate: 48000 })
 
-    // Master gain
     this.masterGain = this.ctx.createGain()
     this.masterGain.gain.value = 0.8
     this.masterGain.connect(this.ctx.destination)
 
-    // Compressor — safety net for dynamic content
     const compressor = this.ctx.createDynamicsCompressor()
     compressor.threshold.value = -6
     compressor.knee.value = 10
@@ -113,22 +102,32 @@ export class AudioEngine {
     compressor.release.value = 0.25
     compressor.connect(this.masterGain)
 
-    // Ambient bus
     this.ambientGain = this.ctx.createGain()
     this.ambientGain.gain.value = this.ambientLevelValue
     this.ambientGain.connect(compressor)
 
-    // Dialog bus
     this.dialogGain = this.ctx.createGain()
     this.dialogGain.gain.value = this.dialogLevelValue
     this.dialogGain.connect(compressor)
 
-    // HRTF panners
     this.pannerA = this.makePanner(this.speakerAPos)
     this.pannerA.connect(this.dialogGain)
 
     this.pannerB = this.makePanner(this.speakerBPos)
     this.pannerB.connect(this.dialogGain)
+
+    // Tworzymy 4 wirtualne głośniki dla dekodera Ambisonics FOA
+    if (this.ambPanners.length === 0) {
+      for (let i = 0; i < 4; i++) {
+        const p = this.ctx.createPanner()
+        p.panningModel = "HRTF" // Zapewnia poprawny odbiór przestrzenny i rotację!
+        p.distanceModel = "linear"
+        p.refDistance = 100 // Duży dystans bazowy, by tło nie zmieniało głośności przy ruchu
+        p.maxDistance = 1000
+        p.connect(this.ambientGain)
+        this.ambPanners.push(p)
+      }
+    }
 
     this.updateListenerPosition(
       this.listenerX,
@@ -158,40 +157,20 @@ export class AudioEngine {
   // File loading
   // ═══════════════════════════════════════════════════════════════════════════
 
-  /**
-   * Returns the public base URL for a given interview, e.g.
-   *   /wywiady/assets/interviews/interview_1/
-   *
-   * Vite exposes import.meta.env.BASE_URL (trailing slash included), so we
-   * don't hard-code "/wywiady/".
-   */
   private interviewBasePath(interviewId: string): string {
     const base = import.meta.env.BASE_URL ?? "/"
     return `${base}assets/interviews/${interviewId}/`
   }
 
-  /**
-   * Fetches and decodes an audio file, with caching and deduplication.
-   * Returns null on any error (network, CORS, unsupported codec, etc.).
-   */
   private async fetchBuffer(url: string): Promise<AudioBuffer | null> {
     if (!this.ctx) return null
-
-    if (this.bufferCache.has(url)) {
-      return this.bufferCache.get(url)!
-    }
-
-    if (this.pendingFetch.has(url)) {
-      return this.pendingFetch.get(url)!
-    }
+    if (this.bufferCache.has(url)) return this.bufferCache.get(url)!
+    if (this.pendingFetch.has(url)) return this.pendingFetch.get(url)!
 
     const promise = (async (): Promise<AudioBuffer | null> => {
       try {
         const response = await fetch(url)
-        if (!response.ok) {
-          console.warn(`[AudioEngine] HTTP ${response.status} for ${url}`)
-          return null
-        }
+        if (!response.ok) return null
         const arrayBuffer = await response.arrayBuffer()
         const audioBuffer = await this.ctx!.decodeAudioData(arrayBuffer)
         this.bufferCache.set(url, audioBuffer)
@@ -208,10 +187,6 @@ export class AudioEngine {
     return promise
   }
 
-  /**
-   * Preloads the first N dialog tracks in the background.
-   * Call after loadInterview to hide network latency for the first click.
-   */
   private preloadTracks(
     interviewId: string,
     tracks: TrackQueueItem[],
@@ -249,9 +224,17 @@ export class AudioEngine {
       listener.upY.value = 1
       listener.upZ.value = 0
     } else {
-      // Safari ≤ 14 fallback
       listener.setPosition(x, 1.7, z)
       listener.setOrientation(fx, 0, fz, 0, 1, 0)
+    }
+
+    // Aktualizacja wirtualnych głośników FOA — podążają za słuchaczem zachowując formę "sfery"
+    // Odległość: 10 jednostek od słuchacza (pozwala to na idealne działanie HRTF dla rotacji sceny)
+    if (this.ambPanners.length === 4) {
+      this.ambPanners[0].setPosition(x - 10, 0, z - 10) // Przedni Lewy (FL)
+      this.ambPanners[1].setPosition(x + 10, 0, z - 10) // Przedni Prawy (FR)
+      this.ambPanners[2].setPosition(x - 10, 0, z + 10) // Tylny Lewy (BL)
+      this.ambPanners[3].setPosition(x + 10, 0, z + 10) // Tylny Prawy (BR)
     }
 
     this.onStateChange({ listenerX: x, listenerZ: z, listenerAngle: angle })
@@ -266,32 +249,114 @@ export class AudioEngine {
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // Ambient
+  // Ambient (FOA AmbiX Decoder)
   // ═══════════════════════════════════════════════════════════════════════════
 
   private async startAmbient(
     interviewId: string,
     interviewIndex: number,
+    ambientFile?: string,
   ): Promise<void> {
     if (!this.ctx || !this.ambientGain) return
     this.stopAmbient()
 
-    const url = this.interviewBasePath(interviewId) + "ambient.wav"
+    const filename = ambientFile || "ambient.wav"
+    const url = this.interviewBasePath(interviewId) + filename
     const buffer = await this.fetchBuffer(url)
 
     if (buffer) {
-      // Real ambient file — loop it
       const src = this.ctx.createBufferSource()
       src.buffer = buffer
       src.loop = true
-      src.connect(this.ambientGain)
+
+      // Sprawdzenie, czy jest to plik Ambisonic (FOA), 4 kanały (W, Y, Z, X - format AmbiX)
+      if (buffer.numberOfChannels === 4 && this.ambPanners.length === 4) {
+        console.info(
+          `[AudioEngine] Włączono dekoder FOA Ambisonics dla pliku ${filename}`,
+        )
+
+        const splitter = this.ctx.createChannelSplitter(4)
+        src.connect(splitter)
+
+        // Matryca decodująca SN3D dla 4 wirtualnych głośników:
+        // FL = W + X + Y
+        // FR = W + X - Y
+        // BL = W - X + Y
+        // BR = W - X - Y
+
+        const flSum = this.ctx.createGain()
+        flSum.connect(this.ambPanners[0])
+        const frSum = this.ctx.createGain()
+        frSum.connect(this.ambPanners[1])
+        const blSum = this.ctx.createGain()
+        blSum.connect(this.ambPanners[2])
+        const brSum = this.ctx.createGain()
+        brSum.connect(this.ambPanners[3])
+
+        // Obniżenie bazowego zysku, by nie doprowadzić do clipowania sumy matematycznej 3 sygnałów
+        const gainLevel = 0.35
+        flSum.gain.value = gainLevel
+        frSum.gain.value = gainLevel
+        blSum.gain.value = gainLevel
+        brSum.gain.value = gainLevel
+
+        // Kanał 0 (W - omni)
+        const wGain = this.ctx.createGain()
+        wGain.gain.value = 1.0
+        splitter.connect(wGain, 0)
+        wGain.connect(flSum)
+        wGain.connect(frSum)
+        wGain.connect(blSum)
+        wGain.connect(brSum)
+
+        // Kanał 1 (Y - L/P) -> Dodatnie to Lewa strona
+        const yPos = this.ctx.createGain()
+        yPos.gain.value = 1.0
+        const yNeg = this.ctx.createGain()
+        yNeg.gain.value = -1.0
+        splitter.connect(yPos, 1)
+        splitter.connect(yNeg, 1)
+        yPos.connect(flSum)
+        yPos.connect(blSum) // Lewa
+        yNeg.connect(frSum)
+        yNeg.connect(brSum) // Prawa
+
+        // Kanał 3 (X - Przód/Tył) -> Dodatnie to Przód
+        const xPos = this.ctx.createGain()
+        xPos.gain.value = 1.0
+        const xNeg = this.ctx.createGain()
+        xNeg.gain.value = -1.0
+        splitter.connect(xPos, 3)
+        splitter.connect(xNeg, 3)
+        xPos.connect(flSum)
+        xPos.connect(frSum) // Przód
+        xNeg.connect(blSum)
+        xNeg.connect(brSum) // Tył
+
+        // Ignorujemy kanał 2 (Z) ponieważ poruszamy się w horyzontalnym układzie współrzędnych 2D.
+
+        // Zapisanie node'ów do zwolnienia przy stopowaniu
+        this.ambientNodes = [
+          splitter,
+          wGain,
+          yPos,
+          yNeg,
+          xPos,
+          xNeg,
+          flSum,
+          frSum,
+          blSum,
+          brSum,
+        ]
+      } else {
+        // Fallback dla zwykłych plików stereo/mono (lub jeśli PannerNodes nie są gotowe)
+        src.connect(this.ambientGain)
+      }
+
       src.start()
       this.ambientSource = src
     } else {
-      // Fallback: synthesise ambient soundscape
-      console.info(
-        "[AudioEngine] ambient.wav not found — using synthesis fallback",
-      )
+      console.info("[AudioEngine] Brak pliku ambient - uruchamianie syntezy.")
       this.startAmbientSynthesis(interviewIndex)
     }
   }
@@ -301,10 +366,13 @@ export class AudioEngine {
       try {
         this.ambientSource.stop()
       } catch {
-        /* already stopped */
+        /* */
       }
       this.ambientSource = null
     }
+    this.ambientNodes.forEach((node) => node.disconnect())
+    this.ambientNodes = []
+
     this.ambientOscillators.forEach((o) => {
       try {
         o.stop()
@@ -313,6 +381,7 @@ export class AudioEngine {
       }
     })
     this.ambientOscillators = []
+
     if (this.ambientNoiseSource) {
       try {
         this.ambientNoiseSource.stop()
@@ -324,20 +393,17 @@ export class AudioEngine {
   }
 
   // ── Synthesis fallback ─────────────────────────────────────────────────────
-
   private startAmbientSynthesis(interviewIndex: number): void {
     if (!this.ctx || !this.ambientGain) return
-
     const themeFreqs = [
-      [60, 120, 180, 440], // Urban
-      [220, 330, 880, 1200], // Forest
-      [80, 160, 300, 500], // Harbor
-      [100, 200, 400, 600], // Metro
-      [130, 260, 520, 780], // Cathedral
+      [60, 120, 180, 440],
+      [220, 330, 880, 1200],
+      [80, 160, 300, 500],
+      [100, 200, 400, 600],
+      [130, 260, 520, 780],
     ]
     const freqs = themeFreqs[interviewIndex % themeFreqs.length]
 
-    // Brown noise base
     const noiseBuf = this.createNoiseBuffer(10, "brown")
     const noiseSrc = this.ctx.createBufferSource()
     noiseSrc.buffer = noiseBuf
@@ -349,7 +415,6 @@ export class AudioEngine {
     noiseSrc.start()
     this.ambientNoiseSource = noiseSrc
 
-    // Tonal drones
     freqs.forEach((freq) => {
       if (!this.ctx || !this.ambientGain) return
       const osc = this.ctx.createOscillator()
@@ -392,7 +457,6 @@ export class AudioEngine {
 
   private async playTrackAsync(index: number): Promise<void> {
     if (!this.ctx || index >= this.trackQueue.length) {
-      // End of queue
       this.isPlaying = false
       this.currentTrackIndex = -1
       this.onStateChange({ isPlaying: false, currentTrackIndex: -1 })
@@ -405,14 +469,12 @@ export class AudioEngine {
     const panner = track.speaker === "A" ? this.pannerA : this.pannerB
     if (!panner) return
 
-    // Announce the new track immediately so UI updates
     this.onStateChange({
       isPlaying: true,
       currentTrackIndex: index,
       isLoadingTrack: true,
     })
 
-    // Try to load real file
     let buffer: AudioBuffer | null = null
     if (this.currentInterviewId && track.filename) {
       const url =
@@ -420,14 +482,9 @@ export class AudioEngine {
       buffer = await this.fetchBuffer(url)
     }
 
-    // Guard: user may have called stop() while we were fetching
     if (!this.isPlaying || this.currentTrackIndex !== index) return
 
     if (!buffer) {
-      // Synthesis fallback
-      console.info(
-        `[AudioEngine] ${track.filename} not found — using synthesis fallback`,
-      )
       const baseFreq = track.speaker === "A" ? 150 : 110
       buffer = this.createToneBuffer(baseFreq, track.durationMs / 1000)
     }
@@ -441,7 +498,6 @@ export class AudioEngine {
 
     const durationMs = buffer.duration * 1000
 
-    // Preload the next track in background while this one plays
     if (this.currentInterviewId && index + 1 < this.trackQueue.length) {
       const next = this.trackQueue[index + 1]
       if (next.filename) {
@@ -466,6 +522,7 @@ export class AudioEngine {
     interviewId: string,
     tracks: TrackQueueItem[],
     interviewIndex: number,
+    ambientFile?: string,
   ): Promise<void> {
     await this.init()
     this.stop()
@@ -475,11 +532,7 @@ export class AudioEngine {
     this.currentTrackIndex = -1
 
     this.updateListenerPosition(0, 4, 0)
-
-    // Start ambient (async — fires and returns, UI is not blocked)
-    this.startAmbient(interviewId, interviewIndex)
-
-    // Preload first few dialog tracks in background
+    this.startAmbient(interviewId, interviewIndex, ambientFile)
     this.preloadTracks(interviewId, tracks, 3)
 
     this.onStateChange({
@@ -586,9 +639,8 @@ export class AudioEngine {
       b6 = 0
     for (let i = 0; i < d.length; i++) {
       const w = Math.random() * 2 - 1
-      if (color === "white") {
-        d[i] = w * 0.2
-      } else if (color === "pink") {
+      if (color === "white") d[i] = w * 0.2
+      else if (color === "pink") {
         b0 = 0.99886 * b0 + w * 0.0555179
         b1 = 0.99332 * b1 + w * 0.0750759
         b2 = 0.969 * b2 + w * 0.153852
@@ -610,8 +662,8 @@ export class AudioEngine {
     const sr = this.ctx.sampleRate
     const buf = this.ctx.createBuffer(1, sr * durationSec, sr)
     const d = buf.getChannelData(0)
-    const f1 = freq * 3.2
-    const f2 = freq * 5.5
+    const f1 = freq * 3.2,
+      f2 = freq * 5.5
     for (let i = 0; i < d.length; i++) {
       const t = i / sr
       const amp =
@@ -624,8 +676,8 @@ export class AudioEngine {
         Math.sin(2 * Math.PI * f1 * pm * t) * 0.2 +
         Math.sin(2 * Math.PI * f2 * pm * t) * 0.1 +
         (Math.random() * 2 - 1) * 0.08
-      const fadeIn = Math.min(1, t / 0.3)
-      const fadeOut = Math.min(1, (durationSec - t) / 0.5)
+      const fadeIn = Math.min(1, t / 0.3),
+        fadeOut = Math.min(1, (durationSec - t) / 0.5)
       d[i] = s * amp * fadeIn * fadeOut * 0.5
     }
     return buf

@@ -114,126 +114,98 @@ export function App() {
     <div className="h-screen w-screen flex flex-col bg-[#060610] text-white overflow-hidden">
       {/* ═══════ Welcome overlay ═══════ */}
       {showWelcome && (
-        <div className="fixed inset-0 z-50 bg-[#060610] flex items-center justify-center overflow-y-auto">
-          <div className="text-center max-w-3xl px-8 py-12">
-            <div className="relative w-24 h-24 mx-auto mb-6">
+        <div className="fixed inset-0 z-50 bg-[#060610] flex items-center justify-center">
+          <div className="text-center max-w-xl px-8">
+            <div className="relative w-32 h-32 mx-auto mb-8">
               <div
-                className="absolute inset-0 rounded-full border-2 border-indigo-500/40 animate-ping"
+                className="absolute inset-0 rounded-full border border-indigo-400/40 animate-ping"
                 style={{ animationDuration: "3s" }}
               />
               <div
-                className="absolute inset-2 rounded-full border-2 border-indigo-500/50 animate-ping"
+                className="absolute inset-2 rounded-full border border-indigo-400/50 animate-ping"
                 style={{ animationDuration: "2.5s" }}
               />
               <div
-                className="absolute inset-4 rounded-full border-2 border-indigo-500/60 animate-ping"
+                className="absolute inset-4 rounded-full border border-indigo-400/60 animate-ping"
                 style={{ animationDuration: "2s" }}
               />
-              <div className="absolute inset-0 flex items-center justify-center bg-[#060610] rounded-full z-10">
+              <div className="absolute inset-0 flex items-center justify-center">
                 <span className="text-5xl">🎧</span>
               </div>
             </div>
 
-            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-4">
+            <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent mb-3">
               Spatial Audio Lab
             </h1>
-            <p className="text-xl md:text-2xl text-blue-300 font-medium mb-8">
+            <p className="text-base text-indigo-200/80 mb-4 font-medium">
               Archiwum wywiadów o dźwięku przestrzennym
             </p>
+            <p className="text-sm md:text-base text-slate-300 mb-8 leading-relaxed max-w-md mx-auto">
+              Zanurz się w historiach 5 ekspertów.{" "}
+              <strong>Załóż słuchawki</strong>, poruszaj się po wirtualnej
+              przestrzeni za pomocą klawiatury i doświadcz w pełni
+              trójwymiarowego dźwięku binauralnego.
+            </p>
 
-            {/* Panel instruktażowy - bardzo wysoki kontrast, duże litery */}
-            <div className="bg-slate-800/80 border-2 border-slate-600 rounded-2xl p-6 md:p-8 text-left mb-10 shadow-2xl">
-              <h2 className="text-2xl font-bold text-white mb-4 border-b border-slate-600 pb-2">
-                Jak korzystać z aplikacji?
-              </h2>
-              <p className="text-lg text-slate-200 mb-6 leading-relaxed">
-                Jeśli nigdy nie doświadczyłeś dźwięku przestrzennego w
-                przeglądarce, oto kilka ważnych wskazówek. Aplikacja symuluje
-                prawdziwą przestrzeń wokół Ciebie:
-              </p>
-              <ul className="space-y-5 text-lg text-slate-100">
-                <li className="flex items-start gap-4">
-                  <span className="text-3xl" aria-hidden="true">
-                    🎧
-                  </span>
-                  <div>
-                    <strong className="text-white block text-xl mb-1">
-                      Krok 1: Załóż słuchawki (Konieczne)
-                    </strong>
-                    Bez słuchawek nie usłyszysz głębi oraz tego, z której strony
-                    dobiega głos.
-                  </div>
-                </li>
-                <li className="flex items-start gap-4">
-                  <span className="text-3xl" aria-hidden="true">
-                    🚶
-                  </span>
-                  <div>
-                    <strong className="text-white block text-xl mb-1">
-                      Krok 2: Poruszaj się w przestrzeni
-                    </strong>
-                    Użyj klawiszy{" "}
-                    <kbd className="bg-slate-700 px-3 py-1 rounded-md border border-slate-500 mx-1 font-bold">
-                      W
-                    </kbd>{" "}
-                    <kbd className="bg-slate-700 px-3 py-1 rounded-md border border-slate-500 mx-1 font-bold">
-                      A
-                    </kbd>{" "}
-                    <kbd className="bg-slate-700 px-3 py-1 rounded-md border border-slate-500 mx-1 font-bold">
-                      S
-                    </kbd>{" "}
-                    <kbd className="bg-slate-700 px-3 py-1 rounded-md border border-slate-500 mx-1 font-bold">
-                      D
-                    </kbd>
-                    , aby chodzić po wirtualnej mapie. Podejdź do rozmówcy, aby
-                    usłyszeć go wyraźniej.
-                  </div>
-                </li>
-                <li className="flex items-start gap-4">
-                  <span className="text-3xl" aria-hidden="true">
-                    🔄
-                  </span>
-                  <div>
-                    <strong className="text-white block text-xl mb-1">
-                      Krok 3: Obracaj głowę
-                    </strong>
-                    Użyj klawiszy{" "}
-                    <kbd className="bg-slate-700 px-3 py-1 rounded-md border border-slate-500 mx-1 font-bold">
-                      Q
-                    </kbd>{" "}
-                    oraz{" "}
-                    <kbd className="bg-slate-700 px-3 py-1 rounded-md border border-slate-500 mx-1 font-bold">
-                      E
-                    </kbd>
-                    , aby się rozglądać. Dźwięk w słuchawkach płynnie zmieni
-                    położenie.
-                  </div>
-                </li>
-              </ul>
+            {/* Control preview */}
+            <div className="inline-flex gap-8 mb-10 text-xs text-slate-300 bg-white/[0.05] rounded-2xl px-8 py-5 border border-white/10 shadow-lg">
+              <div className="text-center">
+                <div className="grid grid-cols-3 gap-1 mb-2">
+                  <span />
+                  <kbd className="w-8 h-7 flex items-center justify-center rounded bg-white/20 text-white font-bold text-xs shadow-sm">
+                    W
+                  </kbd>
+                  <span />
+                  <kbd className="w-8 h-7 flex items-center justify-center rounded bg-white/20 text-white font-bold text-xs shadow-sm">
+                    A
+                  </kbd>
+                  <kbd className="w-8 h-7 flex items-center justify-center rounded bg-white/20 text-white font-bold text-xs shadow-sm">
+                    S
+                  </kbd>
+                  <kbd className="w-8 h-7 flex items-center justify-center rounded bg-white/20 text-white font-bold text-xs shadow-sm">
+                    D
+                  </kbd>
+                </div>
+                <span className="text-[11px] uppercase tracking-wider opacity-80 font-semibold">
+                  Poruszanie
+                </span>
+              </div>
+              <div className="text-center flex flex-col justify-end">
+                <div className="flex gap-1 mb-2 justify-center">
+                  <kbd className="w-8 h-7 flex items-center justify-center rounded bg-amber-500/30 text-amber-100 font-bold text-xs shadow-sm">
+                    Q
+                  </kbd>
+                  <kbd className="w-8 h-7 flex items-center justify-center rounded bg-amber-500/30 text-amber-100 font-bold text-xs shadow-sm">
+                    E
+                  </kbd>
+                </div>
+                <span className="text-[11px] uppercase tracking-wider opacity-80 font-semibold">
+                  Obracanie głowy
+                </span>
+              </div>
             </div>
 
             <div>
               <button
                 onClick={handleStartAudio}
-                className="px-10 py-5 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xl shadow-xl shadow-indigo-900/50 transition-all duration-300 hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-indigo-400"
-                aria-label="Rozpocznij doświadczenie dźwiękowe"
+                className="px-10 py-4 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-base shadow-xl shadow-indigo-900/50 transition-all duration-300 hover:scale-105 active:scale-95"
               >
                 ▶ Rozpocznij Doświadczenie
               </button>
             </div>
 
-            <p className="text-sm text-slate-400 mt-6 font-medium">
-              Wymagana jest interakcja (kliknięcie), aby przeglądarka zezwoliła
-              na odtwarzanie dźwięku.
+            <p className="text-xs text-white/40 mt-6">
+              Przeglądarka wymaga kliknięcia, aby uruchomić silnik audio · 48
+              kHz · 32-bit float
             </p>
 
-            <div className="flex justify-center gap-4 md:gap-6 mt-6 text-sm text-slate-500 font-semibold flex-wrap">
+            <div className="flex justify-center gap-5 mt-4 text-xs text-white/40">
               <span>Web Audio API</span>
-              <span aria-hidden="true">·</span>
+              <span>·</span>
               <span>HRTF Binaural</span>
-              <span aria-hidden="true">·</span>
+              <span>·</span>
               <span>FOA Ambisonics</span>
-              <span aria-hidden="true">·</span>
+              <span>·</span>
               <span>Canvas 2D</span>
             </div>
           </div>
@@ -271,28 +243,26 @@ export function App() {
                 />
 
                 {/* Interview title overlay */}
-                <div className="absolute top-6 left-6 pointer-events-none">
-                  <div className="bg-black/80 backdrop-blur-md rounded-xl px-5 py-4 max-w-sm border border-slate-700 shadow-lg">
-                    <div className="flex items-center gap-3 mb-2">
-                      <span className="text-2xl" aria-hidden="true">
-                        {selectedInterview.icon}
-                      </span>
-                      <h2 className="text-lg font-bold text-white">
+                <div className="absolute top-4 left-4 pointer-events-none">
+                  <div className="bg-black/60 backdrop-blur-md rounded-xl px-5 py-4 max-w-sm border border-white/10 shadow-lg">
+                    <div className="flex items-center gap-3 mb-1">
+                      <span className="text-xl">{selectedInterview.icon}</span>
+                      <h2 className="text-base font-bold text-white">
                         {selectedInterview.title}
                       </h2>
                     </div>
-                    <p className="text-sm text-slate-300 font-medium">
+                    <p className="text-xs text-white/70 font-medium">
                       {selectedInterview.subtitle} ·{" "}
                       {selectedInterview.location}
                     </p>
                     {currentTrackIndex >= 0 &&
                       currentTrackIndex < selectedInterview.tracks.length && (
-                        <div className="mt-4 flex items-center gap-3 bg-slate-800/50 p-2 rounded-lg border border-slate-600">
+                        <div className="mt-3 flex items-center gap-2">
                           {isLoadingTrack ? (
-                            <span className="w-3 h-3 rounded-full border-2 border-slate-400 border-t-white animate-spin" />
+                            <span className="w-2.5 h-2.5 rounded-full border border-white/40 border-t-white animate-spin" />
                           ) : (
                             <span
-                              className="w-3 h-3 rounded-full animate-pulse shadow-md"
+                              className="w-2.5 h-2.5 rounded-full animate-pulse shadow-sm"
                               style={{
                                 backgroundColor:
                                   selectedInterview.tracks[currentTrackIndex]
@@ -302,9 +272,9 @@ export function App() {
                               }}
                             />
                           )}
-                          <span className="text-sm font-semibold text-white">
+                          <span className="text-sm text-white/90 font-semibold">
                             {isLoadingTrack
-                              ? "Wczytywanie ścieżki..."
+                              ? "Wczytywanie..."
                               : selectedInterview.tracks[currentTrackIndex]
                                   .label}
                           </span>
@@ -315,7 +285,7 @@ export function App() {
               </div>
 
               {/* ── Playlist panel ── */}
-              <div className="w-80 border-l border-slate-700 overflow-hidden bg-[#0a0a16]">
+              <div className="w-80 border-l border-white/10 overflow-hidden">
                 <Playlist
                   interview={selectedInterview}
                   currentTrackIndex={currentTrackIndex}
@@ -326,25 +296,23 @@ export function App() {
             </div>
           ) : (
             /* Empty state */
-            <div className="flex-1 flex items-center justify-center bg-[#060610]">
-              <div className="text-center p-8 bg-slate-900/50 border border-slate-800 rounded-2xl shadow-xl max-w-md">
-                <div className="relative w-28 h-28 mx-auto mb-8">
+            <div className="flex-1 flex items-center justify-center">
+              <div className="text-center">
+                <div className="relative w-28 h-28 mx-auto mb-6">
                   <div
-                    className="absolute inset-0 rounded-full border-4 border-dashed border-slate-600 animate-spin"
+                    className="absolute inset-0 rounded-full border-2 border-dashed border-white/20 animate-spin"
                     style={{ animationDuration: "20s" }}
                   />
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-5xl opacity-80" aria-hidden="true">
-                      🎙️
-                    </span>
+                    <span className="text-5xl opacity-60">🎙️</span>
                   </div>
                 </div>
-                <h2 className="text-2xl font-bold text-white mb-4">
-                  Wybierz wywiad
+                <h2 className="text-xl font-semibold text-white/80 mb-3">
+                  Wybierz wywiad z listy
                 </h2>
-                <p className="text-base text-slate-300 leading-relaxed">
-                  Skorzystaj z panelu bocznego po lewej stronie, aby załadować
-                  interesujący Cię wywiad i wejść do przestrzeni dźwiękowej.
+                <p className="text-sm text-white/60 max-w-xs mx-auto">
+                  Skorzystaj z panelu bocznego, aby załadować przestrzeń
+                  dźwiękową eksperta.
                 </p>
               </div>
             </div>

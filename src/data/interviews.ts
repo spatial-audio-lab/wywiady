@@ -14,7 +14,8 @@ export interface TrackItem {
    * Zastępczy czas trwania w milisekundach — używany, gdy plik audio nie zostanie załadowany.
    * Gdy wgrasz prawdziwe pliki WAV/WEBM, AudioEngine sam zczyta ich długość.
    */
-  durationMs: number
+  durationMs?: number
+  binaural?: boolean
 }
 
 export interface Interview {
@@ -30,6 +31,7 @@ export interface Interview {
   speakerAPos: SpeakerPosition2D
   speakerBPos: SpeakerPosition2D
   listenerStart?: SpeakerPosition2D
+  binaural?: boolean
   tracks: TrackItem[]
   speakerA: { name: string; role: string }
   speakerB: { name: string; role: string }
@@ -146,10 +148,10 @@ export const interviews: Interview[] = [
     color: "#f97316",
     ambientDescription:
       "Warstwy szumów, subtelne glitche i przestrzenny sound design",
-    speakerAPos: { x: -4, z: -1 },
-    speakerBPos: { x: 4, z: -1 },
-    listenerStart: { x: 0, z: 5 },
-    speakerA: { name: "Badacz", role: "Pytający" },
+    speakerAPos: { x: -1.75, z: -1 },
+    speakerBPos: { x: 1.75, z: -1 },
+    listenerStart: { x: 0, z: 1 },
+    speakerA: { name: "Oskar Hamerski", role: "Pytający" },
     speakerB: { name: "Rafał Ryterski", role: "Sound Designer / Kompozytor" },
     tracks: [
       {
@@ -159,6 +161,7 @@ export const interviews: Interview[] = [
         label: "Dźwięk immersyjny w praktyce",
         filename: "01_A_pytanie.wav",
         durationMs: 5000,
+        binaural: true,
       },
       {
         id: "3-2",
@@ -167,6 +170,7 @@ export const interviews: Interview[] = [
         label: "Elektronika a postrzeganie przestrzeni",
         filename: "02_B_odpowiedz.wav",
         durationMs: 17000,
+        binaural: true,
       },
       {
         id: "3-3",
@@ -175,6 +179,7 @@ export const interviews: Interview[] = [
         label: "Wyzwania sound designu",
         filename: "03_A_pytanie2.wav",
         durationMs: 8000,
+        binaural: true,
       },
       {
         id: "3-4",
@@ -183,6 +188,7 @@ export const interviews: Interview[] = [
         label: "Estetyka dźwięku współczesnego",
         filename: "04_B_odpowiedz2.wav",
         durationMs: 14000,
+        binaural: true,
       },
     ],
   },

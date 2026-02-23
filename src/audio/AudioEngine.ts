@@ -491,8 +491,12 @@ export class AudioEngine {
     this.stopCurrentDialog()
     this.currentTrackIndex = index
     const track = this.trackQueue[index]
-    const panner = track.speaker === "A" ? this.pannerA : this.pannerB
-    if (!panner) return
+    const panner = track.binaural
+      ? null
+      : track.speaker === "A"
+        ? this.pannerA
+        : this.pannerB
+    if (!track.binaural && !panner) return
 
     this.onStateChange({
       isPlaying: true,
@@ -520,7 +524,12 @@ export class AudioEngine {
 
     this.dialogSource = this.ctx.createBufferSource()
     this.dialogSource.buffer = buffer
-    this.dialogSource.connect(panner)
+    if (panner) {
+      this.dialogSource.connect(panner)
+    } else {
+      // binaural bypass — stereo idzie wprost do dialogGain
+      this.dialogSource.connect(this.dialogGain!)
+    }
     this.dialogSource.start()
 
     // ── Timing: zapamiętaj punkt startowy i uruchom ticker ─────────────────

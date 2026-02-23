@@ -222,7 +222,7 @@ export const interviews: Interview[] = [
     ],
   },
   {
-    id: "wywiad_4",
+    id: "interview_4",
     title: "Pusta przestrzeń",
     subtitle:
       "o teatrze, wirtualnej rzeczywistości i obecności w cyfrowym świecie",

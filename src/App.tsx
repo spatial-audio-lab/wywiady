@@ -56,8 +56,21 @@ export function App() {
     async (interview: Interview) => {
       if (!audioReady) await handleStartAudio()
       setSelectedInterview(interview)
+
+      // Reset listener to interview-specific start position
+      const start = interview.listenerStart ?? { x: 0, z: 4 }
+      setListenerX(start.x)
+      setListenerZ(start.z)
+      setListenerAngle(0)
+
       if (engineRef.current) {
-        // ← Pass all track fields including filename so the engine can fetch real files
+        // Update audio engine speaker positions (3D: y=0)
+        engineRef.current.setSpeakerPositions(
+          { x: interview.speakerAPos.x, y: 0, z: interview.speakerAPos.z },
+          { x: interview.speakerBPos.x, y: 0, z: interview.speakerBPos.z },
+        )
+        engineRef.current.updateListenerPosition(start.x, start.z, 0)
+
         const tracks = interview.tracks.map((t) => ({
           speaker: t.speaker,
           durationMs: t.durationMs,
@@ -115,18 +128,18 @@ export function App() {
       {/* ═══════ Welcome overlay ═══════ */}
       {showWelcome && (
         <div className="fixed inset-0 z-50 bg-[#060610] flex items-center justify-center">
-          <div className="text-center max-w-xl px-8">
+          <div className="text-center max-w-lg px-8">
             <div className="relative w-32 h-32 mx-auto mb-8">
               <div
-                className="absolute inset-0 rounded-full border border-indigo-400/40 animate-ping"
+                className="absolute inset-0 rounded-full border border-indigo-500/20 animate-ping"
                 style={{ animationDuration: "3s" }}
               />
               <div
-                className="absolute inset-2 rounded-full border border-indigo-400/50 animate-ping"
+                className="absolute inset-2 rounded-full border border-indigo-500/30 animate-ping"
                 style={{ animationDuration: "2.5s" }}
               />
               <div
-                className="absolute inset-4 rounded-full border border-indigo-400/60 animate-ping"
+                className="absolute inset-4 rounded-full border border-indigo-500/40 animate-ping"
                 style={{ animationDuration: "2s" }}
               />
               <div className="absolute inset-0 flex items-center justify-center">
@@ -134,72 +147,72 @@ export function App() {
               </div>
             </div>
 
-            <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent mb-3">
-              Spatial Audio Lab
+            <h1 className="font-['Outfit'] text-4xl font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-4">
+              Spatial Audio Lab - Wywiady
             </h1>
-            <p className="text-base text-indigo-200/80 mb-4 font-medium">
-              Archiwum wywiadów o dźwięku przestrzennym
+            <p className="text-base text-white/50 mb-3">
+              Interaktywne doświadczenie dźwięku przestrzennego
             </p>
-            <p className="text-sm md:text-base text-slate-300 mb-8 leading-relaxed max-w-md mx-auto">
-              Zanurz się w historiach 5 ekspertów.{" "}
-              <strong>Załóż słuchawki</strong>, poruszaj się po wirtualnej
-              przestrzeni za pomocą klawiatury i doświadcz w pełni
-              trójwymiarowego dźwięku binauralnego.
+            <p className="text-sm text-white/40 mb-6 leading-relaxed max-w-sm mx-auto font-light">
+              Zanurz się w 5 wywiadach przestrzennych. Poruszaj się po polu
+              dźwiękowym za pomocą klawiatury, myszy lub ekranu dotykowego i
+              doświadcz dźwięku przestrzennego w technologii HRTF.
             </p>
 
             {/* Control preview */}
-            <div className="inline-flex gap-8 mb-10 text-xs text-slate-300 bg-white/[0.05] rounded-2xl px-8 py-5 border border-white/10 shadow-lg">
+            <div className="inline-flex gap-6 mb-8 text-[10px] text-white/25 bg-white/[0.03] rounded-xl px-5 py-3 border border-white/5">
               <div className="text-center">
-                <div className="grid grid-cols-3 gap-1 mb-2">
+                <div className="grid grid-cols-3 gap-[2px] mb-1.5">
                   <span />
-                  <kbd className="w-8 h-7 flex items-center justify-center rounded bg-white/20 text-white font-bold text-xs shadow-sm">
+                  <kbd className="w-6 h-5 flex items-center justify-center rounded bg-white/10 text-white/50 font-bold text-[9px]">
                     W
                   </kbd>
                   <span />
-                  <kbd className="w-8 h-7 flex items-center justify-center rounded bg-white/20 text-white font-bold text-xs shadow-sm">
+                  <kbd className="w-6 h-5 flex items-center justify-center rounded bg-white/10 text-white/50 font-bold text-[9px]">
                     A
                   </kbd>
-                  <kbd className="w-8 h-7 flex items-center justify-center rounded bg-white/20 text-white font-bold text-xs shadow-sm">
+                  <kbd className="w-6 h-5 flex items-center justify-center rounded bg-white/10 text-white/50 font-bold text-[9px]">
                     S
                   </kbd>
-                  <kbd className="w-8 h-7 flex items-center justify-center rounded bg-white/20 text-white font-bold text-xs shadow-sm">
+                  <kbd className="w-6 h-5 flex items-center justify-center rounded bg-white/10 text-white/50 font-bold text-[9px]">
                     D
                   </kbd>
                 </div>
-                <span className="text-[11px] uppercase tracking-wider opacity-80 font-semibold">
-                  Poruszanie
-                </span>
+                <span>Move &amp; Strafe</span>
               </div>
-              <div className="text-center flex flex-col justify-end">
-                <div className="flex gap-1 mb-2 justify-center">
-                  <kbd className="w-8 h-7 flex items-center justify-center rounded bg-amber-500/30 text-amber-100 font-bold text-xs shadow-sm">
+              <div className="text-center">
+                <div className="flex gap-[2px] mb-1.5 justify-center">
+                  <kbd className="w-6 h-5 flex items-center justify-center rounded bg-amber-500/15 text-amber-300/60 font-bold text-[9px]">
                     Q
                   </kbd>
-                  <kbd className="w-8 h-7 flex items-center justify-center rounded bg-amber-500/30 text-amber-100 font-bold text-xs shadow-sm">
+                  <kbd className="w-6 h-5 flex items-center justify-center rounded bg-amber-500/15 text-amber-300/60 font-bold text-[9px]">
                     E
                   </kbd>
                 </div>
-                <span className="text-[11px] uppercase tracking-wider opacity-80 font-semibold">
-                  Obracanie głowy
-                </span>
+                <span>Rotate</span>
+              </div>
+              <div className="text-center">
+                <div className="flex items-center justify-center mb-1.5 h-[22px]">
+                  <span className="text-[14px]">🖱️</span>
+                </div>
+                <span>Drag &amp; Scroll</span>
               </div>
             </div>
 
             <div>
               <button
                 onClick={handleStartAudio}
-                className="px-10 py-4 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-base shadow-xl shadow-indigo-900/50 transition-all duration-300 hover:scale-105 active:scale-95"
+                className="px-8 py-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold text-sm shadow-xl shadow-indigo-900/50 transition-all duration-300 hover:scale-105 active:scale-95"
               >
-                ▶ Rozpocznij Doświadczenie
+                ▶ Rozpocznij doświadczenie
               </button>
             </div>
 
-            <p className="text-xs text-white/40 mt-6">
-              Przeglądarka wymaga kliknięcia, aby uruchomić silnik audio · 48
-              kHz · 32-bit float
+            <p className="text-[10px] text-white/10 mt-4">
+              · 48 kHz · 32-bit float
             </p>
 
-            <div className="flex justify-center gap-5 mt-4 text-xs text-white/40">
+            <div className="flex justify-center gap-5 mt-6 text-[10px] text-white/15">
               <span>Web Audio API</span>
               <span>·</span>
               <span>HRTF Binaural</span>
@@ -229,8 +242,8 @@ export function App() {
               {/* ── Map View ── */}
               <div className="flex-1 relative">
                 <MapView
-                  speakerAPos={{ x: -3, z: -3 }}
-                  speakerBPos={{ x: 3, z: -3 }}
+                  speakerAPos={selectedInterview.speakerAPos}
+                  speakerBPos={selectedInterview.speakerBPos}
                   speakerALabel={selectedInterview.speakerA.name}
                   speakerBLabel={selectedInterview.speakerB.name}
                   listenerX={listenerX}
@@ -244,25 +257,25 @@ export function App() {
 
                 {/* Interview title overlay */}
                 <div className="absolute top-4 left-4 pointer-events-none">
-                  <div className="bg-black/60 backdrop-blur-md rounded-xl px-5 py-4 max-w-sm border border-white/10 shadow-lg">
-                    <div className="flex items-center gap-3 mb-1">
-                      <span className="text-xl">{selectedInterview.icon}</span>
-                      <h2 className="text-base font-bold text-white">
+                  <div className="bg-black/55 backdrop-blur-md rounded-xl px-4 py-3 max-w-xs border border-white/5">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-lg">{selectedInterview.icon}</span>
+                      <h2 className="text-sm font-bold text-white">
                         {selectedInterview.title}
                       </h2>
                     </div>
-                    <p className="text-xs text-white/70 font-medium">
+                    <p className="text-[10px] text-white/30">
                       {selectedInterview.subtitle} ·{" "}
                       {selectedInterview.location}
                     </p>
                     {currentTrackIndex >= 0 &&
                       currentTrackIndex < selectedInterview.tracks.length && (
-                        <div className="mt-3 flex items-center gap-2">
+                        <div className="mt-2 flex items-center gap-2">
                           {isLoadingTrack ? (
-                            <span className="w-2.5 h-2.5 rounded-full border border-white/40 border-t-white animate-spin" />
+                            <span className="w-2 h-2 rounded-full border border-white/40 border-t-white animate-spin" />
                           ) : (
                             <span
-                              className="w-2.5 h-2.5 rounded-full animate-pulse shadow-sm"
+                              className="w-2 h-2 rounded-full animate-pulse"
                               style={{
                                 backgroundColor:
                                   selectedInterview.tracks[currentTrackIndex]
@@ -272,9 +285,9 @@ export function App() {
                               }}
                             />
                           )}
-                          <span className="text-sm text-white/90 font-semibold">
+                          <span className="text-xs text-white/60">
                             {isLoadingTrack
-                              ? "Wczytywanie..."
+                              ? "Loading…"
                               : selectedInterview.tracks[currentTrackIndex]
                                   .label}
                           </span>
@@ -285,7 +298,7 @@ export function App() {
               </div>
 
               {/* ── Playlist panel ── */}
-              <div className="w-80 border-l border-white/10 overflow-hidden">
+              <div className="w-80 border-l border-white/5 overflow-hidden">
                 <Playlist
                   interview={selectedInterview}
                   currentTrackIndex={currentTrackIndex}
@@ -298,21 +311,20 @@ export function App() {
             /* Empty state */
             <div className="flex-1 flex items-center justify-center">
               <div className="text-center">
-                <div className="relative w-28 h-28 mx-auto mb-6">
+                <div className="relative w-24 h-24 mx-auto mb-6">
                   <div
-                    className="absolute inset-0 rounded-full border-2 border-dashed border-white/20 animate-spin"
+                    className="absolute inset-0 rounded-full border-2 border-dashed border-white/10 animate-spin"
                     style={{ animationDuration: "20s" }}
                   />
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-5xl opacity-60">🎙️</span>
+                    <span className="text-4xl opacity-30">🎙️</span>
                   </div>
                 </div>
-                <h2 className="text-xl font-semibold text-white/80 mb-3">
-                  Wybierz wywiad z listy
+                <h2 className="text-lg font-semibold text-white/20 mb-2">
+                  Select an Interview
                 </h2>
-                <p className="text-sm text-white/60 max-w-xs mx-auto">
-                  Skorzystaj z panelu bocznego, aby załadować przestrzeń
-                  dźwiękową eksperta.
+                <p className="text-xs text-white/10 max-w-xs">
+                  Choose from the sidebar to load a spatial audio interview
                 </p>
               </div>
             </div>

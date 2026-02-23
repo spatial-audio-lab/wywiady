@@ -3,7 +3,6 @@ import { Sidebar } from "./components/Sidebar"
 import { Playlist } from "./components/Playlist"
 import { MapView } from "./components/MapView"
 import { TransportControls } from "./components/TransportControls"
-import { InterviewInfoPanel } from "./components/InterviewInfoPanel"
 import { AudioEngine } from "./audio/AudioEngine"
 import { type Interview, interviews } from "./data/interviews"
 
@@ -22,7 +21,6 @@ export function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [audioReady, setAudioReady] = useState(false)
   const [showWelcome, setShowWelcome] = useState(true)
-  // ── Track timing ────────────────────────────────────────────────────────────
   const [trackElapsedMs, setTrackElapsedMs] = useState(0)
   const [trackDurationMs, setTrackDurationMs] = useState(0)
 
@@ -41,7 +39,6 @@ export function App() {
         setListenerAngle(state.listenerAngle)
       if (state.ambientLevel !== undefined) setAmbientLevel(state.ambientLevel)
       if (state.dialogLevel !== undefined) setDialogLevel(state.dialogLevel)
-      // ── Timing ──────────────────────────────────────────────────────────────
       if (state.trackElapsedMs !== undefined)
         setTrackElapsedMs(state.trackElapsedMs)
       if (state.trackDurationMs !== undefined)
@@ -66,7 +63,6 @@ export function App() {
       if (!audioReady) await handleStartAudio()
       setSelectedInterview(interview)
 
-      // Reset listener to interview-specific start position
       const start = interview.listenerStart ?? { x: 0, z: 4 }
       setListenerX(start.x)
       setListenerZ(start.z)
@@ -116,11 +112,9 @@ export function App() {
   const handleSkipTo = useCallback((i: number) => {
     engineRef.current?.skipTo(i)
   }, [])
-
   const handleListenerMove = useCallback((x: number, z: number, a: number) => {
     engineRef.current?.updateListenerPosition(x, z, a)
   }, [])
-
   const handleAmbientLevel = useCallback((v: number) => {
     engineRef.current?.setAmbientLevel(v)
   }, [])
@@ -173,7 +167,6 @@ export function App() {
               doświadcz dźwięku przestrzennego w technologii HRTF.
             </p>
 
-            {/* Control preview */}
             <div className="inline-flex gap-6 mb-8 text-[10px] text-white/25 bg-white/[0.03] rounded-xl px-5 py-3 border border-white/5">
               <div className="text-center">
                 <div className="grid grid-cols-3 gap-[2px] mb-1.5">
@@ -225,7 +218,6 @@ export function App() {
             <p className="text-[10px] text-white/10 mt-4">
               · 48 kHz · 32-bit float
             </p>
-
             <div className="flex justify-center gap-5 mt-6 text-[10px] text-white/15">
               <span>Web Audio API</span>
               <span>·</span>
@@ -253,7 +245,7 @@ export function App() {
         <div className="flex-1 flex flex-col overflow-hidden">
           {selectedInterview ? (
             <div className="flex-1 flex overflow-hidden">
-              {/* ── Map View ── */}
+              {/* ── Mapa — czysta, bez overlayów ── */}
               <div className="flex-1 relative">
                 <MapView
                   speakerAPos={selectedInterview.speakerAPos}
@@ -268,25 +260,17 @@ export function App() {
                   ambientDesc={selectedInterview.ambientDescription}
                   onListenerMove={handleListenerMove}
                 />
+              </div>
 
-                {/* ── Interview info panel (zastępuje stary overlay) ── */}
-                <InterviewInfoPanel
+              {/* ── Panel prawy — dane wywiadu + timing ── */}
+              <div className="w-80 border-l border-white/5 overflow-hidden">
+                <Playlist
                   interview={selectedInterview}
                   currentTrackIndex={currentTrackIndex}
                   isLoadingTrack={isLoadingTrack}
                   isPlaying={isPlaying}
                   trackElapsedMs={trackElapsedMs}
                   trackDurationMs={trackDurationMs}
-                  accentColor={accentColor}
-                />
-              </div>
-
-              {/* ── Playlist panel ── */}
-              <div className="w-80 border-l border-white/5 overflow-hidden">
-                <Playlist
-                  interview={selectedInterview}
-                  currentTrackIndex={currentTrackIndex}
-                  isLoadingTrack={isLoadingTrack}
                   onSkipTo={handleSkipTo}
                 />
               </div>

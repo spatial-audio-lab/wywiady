@@ -80,6 +80,7 @@ export function App() {
           durationMs: t.durationMs,
           label: t.label,
           filename: t.filename,
+          binaural: t.binaural,
         }))
         const idx = interviews.findIndex((i) => i.id === interview.id)
 
@@ -258,6 +259,7 @@ export function App() {
                   activeSpeaker={activeSpeaker}
                   accentColor={accentColor}
                   ambientDesc={selectedInterview.ambientDescription}
+                  binaural={selectedInterview.binaural ?? false}
                   onListenerMove={handleListenerMove}
                 />
               </div>

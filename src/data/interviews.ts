@@ -240,7 +240,7 @@ export const interviews: Interview[] = [
         order: 5,
         speaker: "A",
         label: "Czy VR jest łatwiejszy niż, tradycyjna przestrzeń?",
-        filename: "03_A_pytanie2.webm",
+        filename: "05_A_pytanie3.webm",
         durationMs: 5000,
       },
       {
@@ -248,7 +248,7 @@ export const interviews: Interview[] = [
         order: 6,
         speaker: "B",
         label: "VR nie jest łatwy",
-        filename: "04_B_odpowiedz2.webm",
+        filename: "06_B_odpowiedz3.webm",
         durationMs: 15000,
       },
     ],

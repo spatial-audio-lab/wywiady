@@ -151,6 +151,7 @@ export const interviews: Interview[] = [
     speakerAPos: { x: -1.75, z: -1 },
     speakerBPos: { x: 1.75, z: -1 },
     listenerStart: { x: 0, z: 1 },
+    binaural: true,
     speakerA: { name: "Oskar Hamerski", role: "Pytający" },
     speakerB: { name: "Rafał Ryterski", role: "Sound Designer / Kompozytor" },
     tracks: [
@@ -159,7 +160,7 @@ export const interviews: Interview[] = [
         order: 1,
         speaker: "A",
         label: "Dźwięk immersyjny w praktyce",
-        filename: "01_A_pytanie.wav",
+        filename: "wywiad.webm",
         durationMs: 5000,
         binaural: true,
       },

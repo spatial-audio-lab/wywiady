@@ -517,7 +517,10 @@ export class AudioEngine {
 
     if (!buffer) {
       const baseFreq = track.speaker === "A" ? 150 : 110
-      buffer = this.createToneBuffer(baseFreq, track.durationMs / 1000)
+      buffer = this.createToneBuffer(
+        baseFreq,
+        (track.durationMs ?? 5000) / 1000,
+      )
     }
 
     this.onStateChange({ isLoadingTrack: false })

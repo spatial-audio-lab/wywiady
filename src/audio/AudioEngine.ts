@@ -294,6 +294,8 @@ export class AudioEngine {
     const url = this.interviewBasePath(interviewId) + filename
     const buffer = await this.fetchBuffer(url)
 
+    if (this.currentInterviewId !== interviewId) return
+
     if (buffer) {
       const src = this.ctx.createBufferSource()
       src.buffer = buffer
@@ -571,6 +573,7 @@ export class AudioEngine {
     tracks: TrackQueueItem[],
     interviewIndex: number,
     ambientFile?: string,
+    binaural: false,
   ): Promise<void> {
     await this.init()
     this.stop()
@@ -578,9 +581,12 @@ export class AudioEngine {
     this.currentInterviewId = interviewId
     this.trackQueue = tracks
     this.currentTrackIndex = -1
-
     this.updateListenerPosition(0, 4, 0)
-    this.startAmbient(interviewId, interviewIndex, ambientFile)
+    if (!binaural) {
+      // ← nie uruchamiaj ambientu w trybie binaural
+      this.startAmbient(interviewId, interviewIndex, ambientFile)
+    }
+
     this.preloadTracks(interviewId, tracks, 3)
 
     this.onStateChange({

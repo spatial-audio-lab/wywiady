@@ -89,6 +89,7 @@ export function App() {
           tracks,
           idx,
           interview.ambientFile,
+          interview.binaural ?? false,
         )
       }
     },

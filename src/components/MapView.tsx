@@ -25,12 +25,12 @@ const GRID_MAJOR = "rgba(255,255,255,0.07)"
 const BG = "#060610"
 
 // ─── Movement constants ───
-const MOVE_SPD = 4.0 // world-units / sec
-const ROT_SPD = 2.5 // rad / sec
+const MOVE_SPD = 2.0 // world-units / sec 4
+const ROT_SPD = 1.0 // rad / sec 2.5
 const BOUNDS = 12
-const MOUSE_MOVE_SENSITIVITY = 0.015 // world-units per pixel
-const MOUSE_ROT_SENSITIVITY = 0.004 // rad per pixel
-const WHEEL_ROT_SENSITIVITY = 0.003 // rad per wheel delta
+const MOUSE_MOVE_SENSITIVITY = 0.015 // world-units per pixel 0.015
+const MOUSE_ROT_SENSITIVITY = 0.004 // rad per pixel 0.004
+const WHEEL_ROT_SENSITIVITY = 0.001 // rad per wheel delta 0.003
 
 // ─── Virtual joystick constants ───
 const JOYSTICK_SIZE = 120 // px — outer ring diameter

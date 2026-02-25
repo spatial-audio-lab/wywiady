@@ -229,6 +229,14 @@ export function App() {
               <span>·</span>
               <span>Canvas 2D</span>
             </div>
+
+            <div className="flex justify-center mt-8">
+              <img
+                src="assets/img/KPO.jpg"
+                alt="Krajowy Plan Odbudowy"
+                className="h-16 opacity-90 rounded-sm"
+              />
+            </div>
           </div>
         </div>
       )}

@@ -725,16 +725,15 @@ export function MapView({
 
     let dpr = window.devicePixelRatio || 1
 
-    const resize = () => {
+    const resizeObserver = new ResizeObserver(() => {
       dpr = window.devicePixelRatio || 1
       const r = box.getBoundingClientRect()
       cvs.width = r.width * dpr
       cvs.height = r.height * dpr
-      cvs.style.width = r.width + "px"
-      cvs.style.height = r.height + "px"
-    }
-    resize()
-    window.addEventListener("resize", resize)
+      // Nie ustawiamy style.width/height na sztywno,
+      // dzięki temu canvas reaguje na zmiany flexboxa (resizeObserver to wykryje)
+    })
+    resizeObserver.observe(box)
 
     let last = performance.now()
 
@@ -966,7 +965,7 @@ export function MapView({
     frameRef.current = requestAnimationFrame(loop)
     return () => {
       cancelAnimationFrame(frameRef.current)
-      window.removeEventListener("resize", resize)
+      resizeObserver.disconnect()
     }
   }, [])
 

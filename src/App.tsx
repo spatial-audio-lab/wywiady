@@ -137,7 +137,7 @@ export function App() {
     <div className="h-screen w-screen flex flex-col bg-[#060610] text-white overflow-hidden">
       {/* ═══════ Welcome overlay ═══════ */}
       {showWelcome && (
-        <div className="fixed inset-0 z-50 bg-[#060610] overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-[#060610] overflow-y-auto font-['Outfit']">
           <div className="min-h-full flex flex-col items-center justify-center py-12 px-4">
             <div className="text-center max-w-lg">
               <div className="relative w-24 h-24 mx-auto mb-6">
@@ -169,45 +169,6 @@ export function App() {
                 dźwiękowym za pomocą klawiatury, myszy lub ekranu dotykowego i
                 doświadcz dźwięku przestrzennego w technologii HRTF.
               </p>
-
-              <div className="inline-flex gap-4 mb-6 text-[10px] text-white/25 bg-white/[0.03] rounded-xl px-4 py-3 border border-white/5">
-                <div className="text-center">
-                  <div className="grid grid-cols-3 gap-[2px] mb-1.5">
-                    <span />
-                    <kbd className="w-5 h-4 flex items-center justify-center rounded bg-white/10 text-white/50 font-bold text-[8px]">
-                      W
-                    </kbd>
-                    <span />
-                    <kbd className="w-5 h-4 flex items-center justify-center rounded bg-white/10 text-white/50 font-bold text-[8px]">
-                      A
-                    </kbd>
-                    <kbd className="w-5 h-4 flex items-center justify-center rounded bg-white/10 text-white/50 font-bold text-[8px]">
-                      S
-                    </kbd>
-                    <kbd className="w-5 h-4 flex items-center justify-center rounded bg-white/10 text-white/50 font-bold text-[8px]">
-                      D
-                    </kbd>
-                  </div>
-                  <span>Move</span>
-                </div>
-                <div className="text-center">
-                  <div className="flex gap-[2px] mb-1.5 justify-center">
-                    <kbd className="w-5 h-4 flex items-center justify-center rounded bg-amber-500/15 text-amber-300/60 font-bold text-[8px]">
-                      Q
-                    </kbd>
-                    <kbd className="w-5 h-4 flex items-center justify-center rounded bg-amber-500/15 text-amber-300/60 font-bold text-[8px]">
-                      E
-                    </kbd>
-                  </div>
-                  <span>Rotate</span>
-                </div>
-                <div className="text-center">
-                  <div className="flex items-center justify-center mb-1.5 h-[18px]">
-                    <span className="text-[12px]">🖱️</span>
-                  </div>
-                  <span>Drag</span>
-                </div>
-              </div>
 
               <div>
                 <button

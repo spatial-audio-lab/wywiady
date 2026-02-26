@@ -147,7 +147,7 @@ export const interviews: Interview[] = [
     icon: "🎛️",
     color: "#f97316",
     ambientDescription:
-      "Warstwy szumów, subtelne glitche i przestrzenny sound design",
+      "Szum wentylatora w tle, pies chodzący po mieszkaniu",
     speakerAPos: { x: -4, z: 1 },
     speakerBPos: { x: 4, z: 1 },
     listenerStart: { x: 1, z: 1 },

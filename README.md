@@ -2,6 +2,8 @@
 
 > Interaktywny odtwarzacz wywiadów z dźwiękiem przestrzennym (Spatial Audio).  
 > Użytkownik nawiguje w przestrzeni 2D między źródłami dźwięku, słysząc sferyczne tło (FOA Ambisonics) oraz dialogi przypisane do dwóch punktów (HRTF PannerNode).
+>
+> https://spatial-audio-lab.github.io/wywiady/
 
 ![Web Audio API](https://img.shields.io/badge/Web_Audio_API-HRTF-blue)
 ![React](https://img.shields.io/badge/React-19-61dafb)

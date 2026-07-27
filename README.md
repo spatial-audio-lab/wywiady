@@ -187,10 +187,7 @@ interview_1/
   └────────────────── Kolejność odtwarzania (01, 02, 03, ...)
 ```
 
-> **Uwaga:** Aktualnie aplikacja używa syntetyzowanego audio demo. Aby odtwarzać prawdziwe pliki WAV, należy:
-> 1. Umieścić pliki w `public/assets/interviews/interview_N/`
-> 2. Zmodyfikować `AudioEngine.ts` — zastąpić syntezę wywołaniami `fetch()` + `decodeAudioData()`
-> 3. Dla ambient FOA: podłączyć Omnitone (`createFOARenderer`) zamiast syntezowanego szumu
+> **Uwaga:** Aplikacja obsługuje odtwarzanie plików `.wav` oraz `.webm`. Jeśli pliki audio nie zostaną znalezione w folderze `public/assets/interviews/interview_N/`, system automatycznie przełączy się na syntezę audio demo.
 
 ---
 
@@ -239,7 +236,7 @@ Wynik builda trafia do katalogu `dist/`. Plik `dist/index.html` jest samodzielny
 
 1. **Przygotuj pliki audio:**
    - `ambient.wav` — 4-kanałowy FOA AmbiX (np. z Rode NT-SF1)
-   - `01_A_opis.wav`, `02_B_opis.wav`, ... — Mono, 48kHz, 32-bit float (np. z Zoom F6)
+   - `01_A_opis.wav` (lub `.webm`), ... — Mono, 48kHz, 32-bit float
 
 2. **Umieść w folderze:**
    ```
@@ -267,8 +264,6 @@ Wynik builda trafia do katalogu `dist/`. Plik `dist/index.html` jest samodzielny
    }
    ```
 
-4. **Zmodyfikuj `AudioEngine.ts`** aby ładować prawdziwe pliki (patrz sekcja powyżej).
-
 ---
 
 ## 🔧 Notatki inżynieryjne
@@ -276,7 +271,12 @@ Wynik builda trafia do katalogu `dist/`. Plik `dist/index.html` jest samodzielny
 ### Format audio
 - Pliki z **Zoom F6** są w 32-bit float — Web Audio API natywnie wspiera ten format przez `decodeAudioData()`
 - **Ambient FOA** (AmbiX): 4 kanały, kolejność ACN, normalizacja SN3D
-- **Dialogi**: Mono WAV, 48kHz
+- **Dialogi**: Mono WAV lub WEBM (Opus), 48kHz
+
+### Tryb Binaural
+- Niektóre wywiady (np. Interview 3) są w trybie **Binaural**.
+- W tym trybie pozycja słuchacza jest zablokowana (brak możliwości poruszania się WSAD), aby zachować wierność nagrania binauralnego.
+- Odtwarzane są pliki stereo z zakodowaną przestrzennością (HRTF z poziomu nagrania).
 
 ### Gain Staging
 - **Compressor** na sumie (threshold: -6dB, ratio: 4:1) zapobiega clippingowi

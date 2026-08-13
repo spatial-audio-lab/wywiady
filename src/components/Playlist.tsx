@@ -42,23 +42,23 @@ export function Playlist({
     trackDurationMs > 0 ? Math.max(0, trackDurationMs - trackElapsedMs) : 0
 
   return (
-    <div className="h-full flex flex-col bg-[#0a0a18]/90 backdrop-blur-xl">
+    <div className="h-full flex flex-col bg-[var(--bg2)]/95 backdrop-blur-xl">
       {/* ══ HEADER ══ */}
-      <div className="px-5 pt-5 pb-4 border-b border-white/5">
+      <div className="px-5 pt-5 pb-4 border-b border-[var(--border)]">
         <div className="flex items-center gap-3 mb-4">
           <span className="text-3xl leading-none">{interview.icon}</span>
           <div>
-            <h2 className="text-base font-bold text-white leading-tight">
+            <h2 className="font-['Lexend'] text-base font-bold text-[var(--cream)] leading-tight">
               {interview.title}
             </h2>
-            <p className="text-xs text-white/40 mt-0.5">
+            <p className="font-['Azeret_Mono'] text-xs text-[var(--dim)] mt-0.5">
               {interview.location} · {interview.date}
             </p>
           </div>
         </div>
 
         <div className="flex flex-col gap-2 mb-4">
-          <div className="flex items-center gap-2 bg-red-500/10 rounded-xl px-3 py-2">
+          <div className="flex items-center gap-2 bg-red-500/10 px-3 py-2">
             <span className="w-2.5 h-2.5 rounded-full bg-red-400 shrink-0" />
             <div className="min-w-0">
               <span className="text-sm font-semibold text-red-300 block leading-tight">
@@ -69,7 +69,7 @@ export function Playlist({
               </span>
             </div>
           </div>
-          <div className="flex items-center gap-2 bg-teal-500/10 rounded-xl px-3 py-2">
+          <div className="flex items-center gap-2 bg-teal-500/10 px-3 py-2">
             <span className="w-2.5 h-2.5 rounded-full bg-teal-400 shrink-0" />
             <div className="min-w-0">
               <span className="text-sm font-semibold text-teal-300 block leading-tight">
@@ -82,13 +82,13 @@ export function Playlist({
           </div>
         </div>
 
-        <div className="flex items-start gap-2 bg-white/3 rounded-xl px-3 py-2.5">
+        <div className="flex items-start gap-2 bg-[rgba(240,235,224,0.03)] px-3 py-2.5">
           <span className="text-sm mt-0.5 shrink-0">🌐</span>
           <div>
-            <span className="text-[11px] font-semibold text-purple-400 block leading-tight mb-0.5">
+            <span className="font-['Azeret_Mono'] text-[11px] font-semibold text-[var(--amber)] block leading-tight mb-0.5">
               FOA Ambient
             </span>
-            <span className="text-xs text-white/35 italic leading-snug">
+            <span className="text-xs text-[var(--dim)] italic leading-snug">
               {interview.ambientDescription}
             </span>
           </div>
@@ -96,21 +96,21 @@ export function Playlist({
       </div>
 
       {/* ══ AKTYWNY TRACK — progress + timing ══ */}
-      <div className="px-5 py-3 border-b border-white/5">
+      <div className="px-5 py-3 border-b border-[var(--border)]">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-[11px] uppercase tracking-widest text-white/20 font-semibold">
+          <span className="font-['Azeret_Mono'] text-[11px] uppercase tracking-widest text-[var(--dim)] font-semibold">
             Track {currentTrackIndex >= 0 ? currentTrackIndex + 1 : 0} /{" "}
             {interview.tracks.length}
           </span>
-          <span className="text-[11px] font-mono text-white/20">
+          <span className="font-['Azeret_Mono'] text-[11px] text-[var(--dim)]">
             {formatMs(totalDuration)} total
           </span>
         </div>
 
         {/* Progress całości */}
-        <div className="h-1 bg-white/5 rounded-full overflow-hidden mb-3">
+        <div className="h-1 bg-[var(--border)] overflow-hidden mb-3">
           <div
-            className="h-full rounded-full transition-all duration-500"
+            className="h-full transition-all duration-500"
             style={{
               width: `${
                 currentTrackIndex >= 0
@@ -128,7 +128,7 @@ export function Playlist({
           <div>
             <div className="flex items-center gap-2 mb-2">
               {isLoadingTrack ? (
-                <span className="w-2 h-2 rounded-full border border-white/30 border-t-white animate-spin shrink-0" />
+                <span className="w-2 h-2 rounded-full border border-[var(--border2)] border-t-[var(--cream)] animate-spin shrink-0" />
               ) : (
                 <span
                   className="w-2 h-2 rounded-full shrink-0 transition-all"
@@ -147,7 +147,7 @@ export function Playlist({
                   }}
                 />
               )}
-              <span className="text-sm font-semibold text-white leading-tight">
+              <span className="text-sm font-semibold text-[var(--cream)] leading-tight">
                 {isLoadingTrack
                   ? "Ładowanie…"
                   : interview.tracks[currentTrackIndex].label}
@@ -155,9 +155,9 @@ export function Playlist({
             </div>
 
             {/* Progress bieżącego tracku */}
-            <div className="h-1.5 bg-white/8 rounded-full overflow-hidden mb-1.5">
+            <div className="h-1.5 bg-[var(--border2)] overflow-hidden mb-1.5">
               <div
-                className="h-full rounded-full"
+                className="h-full"
                 style={{
                   width: `${progress * 100}%`,
                   backgroundColor: interview.color,
@@ -170,18 +170,18 @@ export function Playlist({
             </div>
 
             <div className="flex items-center justify-between">
-              <span className="text-xs font-mono text-white/40">
+              <span className="font-['Azeret_Mono'] text-xs text-[var(--dim)]">
                 {formatMs(trackElapsedMs)} / {formatMs(trackDurationMs)}
               </span>
               {trackDurationMs > 0 && (
-                <span className="text-xs font-mono text-white/25">
+                <span className="font-['Azeret_Mono'] text-xs text-[var(--dim)] opacity-70">
                   −{formatMs(remaining)}
                 </span>
               )}
             </div>
           </div>
         ) : (
-          <p className="text-xs text-white/20">Gotowy do odtwarzania</p>
+          <p className="text-xs text-[var(--dim)]">Gotowy do odtwarzania</p>
         )}
       </div>
 
@@ -201,21 +201,21 @@ export function Playlist({
               onClick={() => onSkipTo(index)}
               className={`
                 w-full flex items-start gap-3 px-5 py-3.5 text-left transition-all duration-200
-                border-b border-white/[0.03]
+                border-b border-[var(--border)]
                 ${
                   isCurrent
-                    ? "bg-white/[0.07]"
+                    ? "bg-[rgba(240,235,224,0.07)]"
                     : isPast
-                      ? "opacity-40 hover:opacity-70 hover:bg-white/[0.03]"
-                      : "hover:bg-white/[0.04]"
+                      ? "opacity-40 hover:opacity-70 hover:bg-[rgba(240,235,224,0.03)]"
+                      : "hover:bg-[rgba(240,235,224,0.04)]"
                 }
               `}
             >
               {/* Numer / animacja */}
               <div
                 className={`
-                  w-8 h-8 rounded-lg flex items-center justify-center font-bold shrink-0 mt-0.5
-                  ${isCurrent ? speakerBg : "bg-white/5"}
+                  w-8 h-8 flex items-center justify-center font-bold shrink-0 mt-0.5
+                  ${isCurrent ? speakerBg : "bg-[var(--border)]"}
                 `}
               >
                 {isCurrent ? (
@@ -249,7 +249,7 @@ export function Playlist({
                     />
                   </span>
                 ) : (
-                  <span className="text-xs text-white/25">
+                  <span className="font-['Azeret_Mono'] text-xs text-[var(--dim)] opacity-70">
                     {track.order.toString().padStart(2, "0")}
                   </span>
                 )}
@@ -269,20 +269,20 @@ export function Playlist({
               <div className="flex-1 min-w-0">
                 <div
                   className={`text-sm leading-tight mb-1 ${
-                    isCurrent ? "text-white font-semibold" : "text-white/55"
+                    isCurrent ? "text-[var(--cream)] font-semibold" : "text-[var(--dim)]"
                   }`}
                 >
                   {track.label}
                 </div>
-                <div className="text-[11px] text-white/20 font-mono truncate">
+                <div className="font-['Azeret_Mono'] text-[11px] text-[var(--dim)] opacity-60 truncate">
                   {track.filename}
                 </div>
               </div>
 
               {/* Czas trwania */}
               <div
-                className={`text-xs font-mono shrink-0 mt-1 ${
-                  isCurrent ? "text-white/60" : "text-white/20"
+                className={`font-['Azeret_Mono'] text-xs shrink-0 mt-1 ${
+                  isCurrent ? "text-[var(--cream)] opacity-80" : "text-[var(--dim)] opacity-60"
                 }`}
               >
                 {formatMs(track.durationMs)}

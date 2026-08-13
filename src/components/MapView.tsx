@@ -18,11 +18,11 @@ interface MapViewProps {
 // ─── Visual constants ───
 const SPEAKER_A_CLR = "#ff6b6b"
 const SPEAKER_B_CLR = "#4ecdc4"
-const LISTENER_CLR = "#c8d8ff"
-const CONE_CLR = "rgba(90,160,255,0.07)"
-const GRID_CLR = "rgba(255,255,255,0.035)"
-const GRID_MAJOR = "rgba(255,255,255,0.07)"
-const BG = "#060610"
+const LISTENER_CLR = "#00E5CC" // --cyan
+const CONE_CLR = "rgba(0,229,204,0.07)"
+const GRID_CLR = "rgba(240,235,224,0.035)"
+const GRID_MAJOR = "rgba(240,235,224,0.08)" // --border
+const BG = "#0A0C08" // --black
 
 // ─── Movement constants ───
 const MOVE_SPD = 2.0 // world-units / sec 4
@@ -266,13 +266,13 @@ function drawListener(
   c.translate(sx, sy)
   c.rotate(angle)
 
-  c.fillStyle = "rgba(80,140,255,0.15)"
+  c.fillStyle = "rgba(0,229,204,0.15)"
   c.beginPath()
   c.arc(0, 0, sz * 1.2, 0, Math.PI * 2)
   c.fill()
 
   c.fillStyle = LISTENER_CLR
-  c.strokeStyle = "rgba(100,160,255,0.7)"
+  c.strokeStyle = "rgba(0,229,204,0.7)"
   c.lineWidth = 2 * dpr
   c.beginPath()
   c.moveTo(0, -sz)
@@ -282,15 +282,15 @@ function drawListener(
   c.fill()
   c.stroke()
 
-  c.fillStyle = "#5588ff"
+  c.fillStyle = "#00E5CC"
   c.beginPath()
   c.arc(0, -sz * 0.3, 3 * dpr, 0, Math.PI * 2)
   c.fill()
 
   c.restore()
 
-  c.fillStyle = "rgba(150,195,255,0.75)"
-  c.font = `${Math.round(10 * dpr)}px system-ui, sans-serif`
+  c.fillStyle = "rgba(0,229,204,0.75)"
+  c.font = `${Math.round(10 * dpr)}px 'Lexend', system-ui, sans-serif`
   c.textAlign = "center"
   c.fillText("🎙️ MIC", sx, sy + 26 * dpr)
 }
@@ -304,7 +304,7 @@ function drawCompass(
   dpr: number,
 ) {
   c.save()
-  c.strokeStyle = "rgba(255,255,255,0.08)"
+  c.strokeStyle = "rgba(240,235,224,0.08)"
   c.lineWidth = 1.5 * dpr
   c.beginPath()
   c.arc(cx, cy, radius, 0, Math.PI * 2)
@@ -312,12 +312,12 @@ function drawCompass(
 
   const labels = ["N", "E", "S", "W"]
   const fs = Math.round(9 * dpr)
-  c.font = `${fs}px system-ui, sans-serif`
+  c.font = `${fs}px 'Azeret Mono', monospace`
   c.textAlign = "center"
   c.textBaseline = "middle"
   for (let i = 0; i < 4; i++) {
     const a = (i * Math.PI) / 2 - Math.PI / 2
-    c.fillStyle = i === 0 ? "rgba(255,100,100,0.6)" : "rgba(255,255,255,0.25)"
+    c.fillStyle = i === 0 ? "rgba(255,51,85,0.7)" : "rgba(156,152,144,0.7)"
     c.fillText(
       labels[i],
       cx + Math.cos(a) * (radius - 10 * dpr),
@@ -328,7 +328,7 @@ function drawCompass(
   const ca = angle - Math.PI / 2
   const dx = Math.cos(ca) * (radius - 22 * dpr)
   const dy = Math.sin(ca) * (radius - 22 * dpr)
-  c.fillStyle = "#5588ff"
+  c.fillStyle = "#00E5CC"
   c.beginPath()
   c.arc(cx + dx, cy + dy, 4 * dpr, 0, Math.PI * 2)
   c.fill()
@@ -362,7 +362,7 @@ function drawBinauralBadge(
   const badgeY = 16 * dpr
   const badgeW = 272 * dpr
   const badgeH = 36 * dpr
-  const r = 8 * dpr
+  const r = 0
 
   c.save()
 
@@ -396,8 +396,8 @@ function drawBinauralBadge(
   c.stroke()
 
   // tekst
-  c.fillStyle = "rgba(255, 210, 160, 0.95)"
-  c.font = `${11 * dpr}px 'Outfit', system-ui, sans-serif`
+  c.fillStyle = "#FFAB00" // --amber
+  c.font = `${11 * dpr}px 'Lexend', system-ui, sans-serif`
   c.textBaseline = "middle"
   c.textAlign = "left"
   c.fillText(
@@ -411,8 +411,8 @@ function drawBinauralBadge(
   // druga linia — podpowiedź o trójkącie nagraniowym
   const line2Y = badgeY + badgeH + 8 * dpr
   c.save()
-  c.fillStyle = "rgba(255,255,255,0.2)"
-  c.font = `${9 * dpr}px system-ui, sans-serif`
+  c.fillStyle = "rgba(156,152,144,0.7)"
+  c.font = `${9 * dpr}px 'Azeret Mono', monospace`
   c.textBaseline = "top"
   c.textAlign = "left"
   c.fillText(
@@ -938,8 +938,8 @@ export function MapView({
       // coords HUD (top-right) — tylko w trybie normalnym
       if (!pr.binaural) {
         ctx.save()
-        ctx.fillStyle = "rgba(255,255,255,0.35)"
-        ctx.font = `${Math.round(10 * dpr)}px monospace`
+        ctx.fillStyle = "rgba(156,152,144,0.85)"
+        ctx.font = `${Math.round(10 * dpr)}px 'Azeret Mono', monospace`
         ctx.textAlign = "right"
         const deg = ((((st.angle * 180) / Math.PI) % 360) + 360) % 360
         ctx.fillText(
@@ -1009,15 +1009,15 @@ export function MapView({
           >
             {/* Outer ring */}
             <div
-              className="absolute inset-0 rounded-full border-2 border-white/10"
+              className="absolute inset-0 rounded-full border-2 border-[var(--border2)]"
               style={{
                 background:
-                  "radial-gradient(circle, rgba(255,255,255,0.04) 0%, transparent 70%)",
+                  "radial-gradient(circle, rgba(240,235,224,0.04) 0%, transparent 70%)",
               }}
             />
             {/* Knob */}
             <div
-              className="absolute rounded-full bg-white/15 border border-white/25 shadow-lg transition-transform duration-75"
+              className="absolute rounded-full bg-[rgba(240,235,224,0.15)] border border-[var(--border2)] shadow-lg transition-transform duration-75"
               style={{
                 width: JOYSTICK_KNOB,
                 height: JOYSTICK_KNOB,
@@ -1030,7 +1030,7 @@ export function MapView({
               }}
             />
             {/* Label */}
-            <div className="absolute -top-5 left-0 right-0 text-center text-[9px] text-white/20 uppercase tracking-wider">
+            <div className="font-['Azeret_Mono'] absolute -top-5 left-0 right-0 text-center text-[9px] text-[var(--dim)] uppercase tracking-wider">
               Move
             </div>
           </div>
@@ -1046,17 +1046,17 @@ export function MapView({
             }}
           >
             <div
-              className="w-full h-full rounded-xl border border-white/8 flex items-center justify-center"
+              className="w-full h-full border border-[var(--border)] flex items-center justify-center"
               style={{
                 background:
-                  "linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.06), rgba(255,255,255,0.02))",
+                  "linear-gradient(90deg, rgba(240,235,224,0.02), rgba(240,235,224,0.06), rgba(240,235,224,0.02))",
               }}
             >
-              <span className="text-[10px] text-white/15">
+              <span className="font-['Azeret_Mono'] text-[10px] text-[var(--dim)] opacity-60">
                 ← swipe → rotate
               </span>
             </div>
-            <div className="absolute -top-5 left-0 right-0 text-center text-[9px] text-white/20 uppercase tracking-wider">
+            <div className="font-['Azeret_Mono'] absolute -top-5 left-0 right-0 text-center text-[9px] text-[var(--dim)] uppercase tracking-wider">
               Rotate
             </div>
           </div>
@@ -1066,39 +1066,39 @@ export function MapView({
       {/* ─── Keyboard controls overlay (desktop, tylko gdy nie binaural) ─── */}
       {!showTouchControls && !binaural && (
         <div className="absolute bottom-4 left-4 select-none pointer-events-none">
-          <div className="bg-black/50 backdrop-blur-md rounded-xl px-4 py-3 border border-white/5">
+          <div className="bg-[var(--bg2)]/90 backdrop-blur-md px-4 py-3 border border-[var(--border)]">
             <div className="grid grid-cols-3 gap-[3px] w-fit mx-auto mb-2">
-              <kbd className="w-8 h-7 flex items-center justify-center rounded bg-white/10 text-[10px] text-amber-300/70 font-bold">
+              <kbd className="font-['Azeret_Mono'] w-8 h-7 flex items-center justify-center bg-[var(--black)] border border-[var(--border2)] text-[10px] text-[var(--amber)] font-bold">
                 Q
               </kbd>
-              <kbd className="w-8 h-7 flex items-center justify-center rounded bg-white/15 text-[10px] text-white/80 font-bold">
+              <kbd className="font-['Azeret_Mono'] w-8 h-7 flex items-center justify-center bg-[var(--black)] border border-[var(--border2)] text-[10px] text-[var(--cream)] font-bold">
                 W
               </kbd>
-              <kbd className="w-8 h-7 flex items-center justify-center rounded bg-white/10 text-[10px] text-amber-300/70 font-bold">
+              <kbd className="font-['Azeret_Mono'] w-8 h-7 flex items-center justify-center bg-[var(--black)] border border-[var(--border2)] text-[10px] text-[var(--amber)] font-bold">
                 E
               </kbd>
-              <kbd className="w-8 h-7 flex items-center justify-center rounded bg-white/15 text-[10px] text-white/80 font-bold">
+              <kbd className="font-['Azeret_Mono'] w-8 h-7 flex items-center justify-center bg-[var(--black)] border border-[var(--border2)] text-[10px] text-[var(--cream)] font-bold">
                 A
               </kbd>
-              <kbd className="w-8 h-7 flex items-center justify-center rounded bg-white/15 text-[10px] text-white/80 font-bold">
+              <kbd className="font-['Azeret_Mono'] w-8 h-7 flex items-center justify-center bg-[var(--black)] border border-[var(--border2)] text-[10px] text-[var(--cream)] font-bold">
                 S
               </kbd>
-              <kbd className="w-8 h-7 flex items-center justify-center rounded bg-white/15 text-[10px] text-white/80 font-bold">
+              <kbd className="font-['Azeret_Mono'] w-8 h-7 flex items-center justify-center bg-[var(--black)] border border-[var(--border2)] text-[10px] text-[var(--cream)] font-bold">
                 D
               </kbd>
             </div>
-            <div className="text-[8px] text-white/25 text-center leading-snug space-y-0.5">
+            <div className="font-['Azeret_Mono'] text-[8px] text-[var(--dim)] opacity-70 text-center leading-snug space-y-0.5">
               <div>
-                <span className="text-white/40">W</span> forward ·{" "}
-                <span className="text-white/40">S</span> back ·{" "}
-                <span className="text-white/40">A</span> strafe ← ·{" "}
-                <span className="text-white/40">D</span> strafe →
+                <span className="text-[var(--cream)] opacity-70">W</span> forward ·{" "}
+                <span className="text-[var(--cream)] opacity-70">S</span> back ·{" "}
+                <span className="text-[var(--cream)] opacity-70">A</span> strafe ← ·{" "}
+                <span className="text-[var(--cream)] opacity-70">D</span> strafe →
               </div>
               <div>
-                <span className="text-amber-300/50">Q</span> rotate ← ·{" "}
-                <span className="text-amber-300/50">E</span> rotate →
+                <span className="text-[var(--amber)] opacity-80">Q</span> rotate ← ·{" "}
+                <span className="text-[var(--amber)] opacity-80">E</span> rotate →
               </div>
-              <div className="mt-1 text-white/15">
+              <div className="mt-1 opacity-60">
                 🖱 drag: move · right-drag/scroll: rotate
               </div>
             </div>
@@ -1115,17 +1115,17 @@ export function MapView({
             : {}
         }
       >
-        <div className="bg-black/50 backdrop-blur-md rounded-xl px-3 py-2 border border-white/5 max-w-[200px]">
+        <div className="bg-[var(--bg2)]/90 backdrop-blur-md px-3 py-2 border border-[var(--border)] max-w-[200px]">
           <div className="flex items-center gap-1.5 mb-1">
             <span
               className="w-1.5 h-1.5 rounded-full animate-pulse"
               style={{ backgroundColor: accentColor }}
             />
-            <span className="text-[9px] text-white/30 uppercase tracking-wider font-semibold">
+            <span className="font-['Azeret_Mono'] text-[9px] text-[var(--dim)] uppercase tracking-wider font-semibold">
               FOA Ambient
             </span>
           </div>
-          <p className="text-[9px] text-white/20 italic leading-snug">
+          <p className="text-[9px] text-[var(--dim)] opacity-80 italic leading-snug">
             {ambientDesc}
           </p>
         </div>

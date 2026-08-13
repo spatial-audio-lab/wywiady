@@ -1,5 +1,34 @@
 @import "tailwindcss";
 
+/* ═══════ SAL Design Manifest v3.0 — CSS Custom Properties ═══════ */
+:root {
+  /* Baza neutralna */
+  --black: #0A0C08;
+  --bg2: #12150F;
+  --cream: #F0EBE0;
+  --dim: #9C9890;
+
+  /* Akcenty semantyczne */
+  --cyan: #00E5CC;
+  --amber: #FFAB00;
+  --crimson: #FF3355;
+  --acid: #BEFF00;
+
+  /* Bordery manifestu */
+  --border: rgba(240, 235, 224, 0.08);
+  --border2: rgba(240, 235, 224, 0.14);
+}
+
+body {
+  font-family: 'Lexend', sans-serif;
+}
+
+/* Fokus klawiatury — zawsze widoczny, 2px cyan, offset 2px (manifest #12) */
+:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 2px;
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 4px;

@@ -41,13 +41,13 @@ function SliderRow({
 
       {/* Label + wartość */}
       <div className="flex items-baseline gap-1.5 w-[72px] shrink-0">
-        <span className="text-[10px] text-white/40 uppercase tracking-wide leading-none">
+        <span className="font-['Azeret_Mono'] text-[10px] text-[var(--dim)] uppercase tracking-wide leading-none">
           {label}
         </span>
         <span
-          className="text-[11px] font-mono font-semibold leading-none transition-all duration-150"
+          className="font-['Azeret_Mono'] text-[11px] font-semibold leading-none transition-all duration-150"
           style={{
-            color: active ? accentColor : "rgba(255,255,255,0.25)",
+            color: active ? accentColor : "var(--dim)",
             // lekkie powiększenie gdy aktywny (drag lub hover)
             fontSize: active ? "12px" : "11px",
           }}
@@ -60,10 +60,10 @@ function SliderRow({
       <div className="relative flex-1">
         {/* Track fill */}
         <div
-          className="absolute top-1/2 left-0 h-[2px] rounded-full -translate-y-1/2 pointer-events-none transition-all duration-75"
+          className="absolute top-1/2 left-0 h-[2px] -translate-y-1/2 pointer-events-none transition-all duration-75"
           style={{
             width: `${pct}%`,
-            backgroundColor: active ? accentColor : "rgba(255,255,255,0.2)",
+            backgroundColor: active ? accentColor : "var(--border2)",
           }}
         />
         <input
@@ -78,7 +78,7 @@ function SliderRow({
           onMouseLeave={() => setActive(false)}
           onTouchStart={() => setActive(true)}
           onTouchEnd={() => setActive(false)}
-          className="relative w-full h-1 rounded-full appearance-none cursor-pointer bg-white/8 focus:outline-none"
+          className="relative w-full h-1 appearance-none cursor-pointer bg-[var(--border2)]"
           style={
             {
               "--thumb-color": accentColor,
@@ -105,14 +105,14 @@ export function TransportControls({
   onDialogLevelChange,
 }: TransportControlsProps) {
   return (
-    <div className="bg-[#0d0d1a] border-t border-white/5 px-6 py-3">
+    <div className="bg-[var(--bg2)] border-t border-[var(--border)] px-6 py-3">
       <div className="flex items-center justify-between gap-6">
         {/* Transport buttons */}
         <div className="flex items-center gap-2">
           <button
             onClick={onStop}
             disabled={!hasInterview}
-            className="w-9 h-9 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-20 flex items-center justify-center text-white/60 hover:text-white transition-all"
+            className="w-9 h-9 bg-[var(--black)] border border-[var(--border2)] hover:border-[var(--cyan)] disabled:opacity-20 flex items-center justify-center text-[var(--dim)] hover:text-[var(--cream)] transition-all"
             title="Stop"
           >
             <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
@@ -123,7 +123,7 @@ export function TransportControls({
           <button
             onClick={onSkipPrev}
             disabled={!hasInterview}
-            className="w-9 h-9 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-20 flex items-center justify-center text-white/60 hover:text-white transition-all"
+            className="w-9 h-9 bg-[var(--black)] border border-[var(--border2)] hover:border-[var(--cyan)] disabled:opacity-20 flex items-center justify-center text-[var(--dim)] hover:text-[var(--cream)] transition-all"
             title="Previous"
           >
             <svg width="16" height="14" viewBox="0 0 16 14" fill="currentColor">
@@ -135,9 +135,9 @@ export function TransportControls({
           <button
             onClick={isPlaying ? onPause : onPlay}
             disabled={!hasInterview}
-            className="w-12 h-12 rounded-xl flex items-center justify-center text-white transition-all shadow-lg disabled:opacity-20"
+            className="w-12 h-12 flex items-center justify-center text-[var(--cream)] transition-all shadow-lg disabled:opacity-20"
             style={{
-              backgroundColor: hasInterview ? accentColor : "#333",
+              backgroundColor: hasInterview ? accentColor : "var(--border2)",
               boxShadow: hasInterview ? `0 4px 20px ${accentColor}40` : "none",
             }}
             title={isPlaying ? "Pause" : "Play"}
@@ -167,7 +167,7 @@ export function TransportControls({
           <button
             onClick={onSkipNext}
             disabled={!hasInterview}
-            className="w-9 h-9 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-20 flex items-center justify-center text-white/60 hover:text-white transition-all"
+            className="w-9 h-9 bg-[var(--black)] border border-[var(--border2)] hover:border-[var(--cyan)] disabled:opacity-20 flex items-center justify-center text-[var(--dim)] hover:text-[var(--cream)] transition-all"
             title="Next"
           >
             <svg width="16" height="14" viewBox="0 0 16 14" fill="currentColor">
@@ -228,13 +228,11 @@ export function TransportControls({
         }
         input[type=range]::-webkit-slider-runnable-track {
           height: 3px;
-          border-radius: 2px;
-          background: rgba(255,255,255,0.08);
+          background: rgba(240,235,224,0.14);
         }
         input[type=range]::-moz-range-track {
           height: 3px;
-          border-radius: 2px;
-          background: rgba(255,255,255,0.08);
+          background: rgba(240,235,224,0.14);
         }
       `}</style>
     </div>

@@ -134,10 +134,10 @@ export function App() {
       : null
 
   return (
-    <div className="h-screen w-screen flex flex-col bg-[#060610] text-white overflow-hidden">
+    <div className="h-screen w-screen flex flex-col overflow-hidden" style={{ background: 'var(--black)', color: 'var(--cream)' }}>
       {/* ═══════ Welcome overlay ═══════ */}
       {showWelcome && (
-        <div className="fixed inset-0 z-50 bg-[#060610] overflow-y-auto font-['Outfit']">
+        <div className="fixed inset-0 z-50 overflow-y-auto font-['Lexend']" style={{ background: 'var(--black)' }}>
           <div className="min-h-full flex flex-col items-center justify-center py-12 px-4">
             <div className="text-center max-w-lg">
               <div className="relative w-24 h-24 mx-auto mb-6">
@@ -158,13 +158,13 @@ export function App() {
                 </div>
               </div>
 
-              <h1 className="font-['Outfit'] text-3xl md:text-4xl font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-3">
+              <h1 className="font-['Lexend'] text-3xl md:text-4xl font-bold mb-3" style={{ color: 'var(--cream)' }}>
                 Spatial Audio Lab - Wywiady
               </h1>
-              <p className="text-sm md:text-base text-white/50 mb-4">
+              <p className="text-sm md:text-base mb-4" style={{ color: 'rgba(240, 235, 224, 0.7)' }}>
                 Interaktywne doświadczenie dźwięku przestrzennego
               </p>
-              <p className="text-xs md:text-sm text-white/40 mb-6 leading-relaxed max-w-sm mx-auto font-light">
+              <p className="text-xs md:text-sm mb-6 leading-relaxed max-w-sm mx-auto font-light" style={{ color: 'rgba(156, 152, 144, 0.8)' }}>
                 Zanurz się w 5 wywiadach przestrzennych. Poruszaj się po polu
                 dźwiękowym za pomocą klawiatury, myszy lub ekranu dotykowego i
                 doświadcz dźwięku przestrzennego w technologii HRTF.
@@ -173,13 +173,26 @@ export function App() {
               <div>
                 <button
                   onClick={handleStartAudio}
-                  className="px-8 py-3 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold text-sm shadow-xl shadow-indigo-900/50 transition-all duration-300 hover:scale-105 active:scale-95"
+                  className="font-['Lexend'] font-semibold text-sm transition-opacity duration-200"
+                  style={{
+                    background: 'var(--cyan)',
+                    color: 'var(--black)',
+                    padding: '14px 24px',
+                    minHeight: '44px',
+                    borderRadius: '0',
+                    border: 'none',
+                    cursor: 'pointer',
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.85'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
+                  onMouseDown={(e) => { e.currentTarget.style.opacity = '0.7'; }}
+                  onMouseUp={(e) => { e.currentTarget.style.opacity = '0.85'; }}
                 >
                   ▶ Rozpocznij doświadczenie
                 </button>
               </div>
 
-              <div className="flex justify-center gap-4 mt-6 text-[9px] text-white/15">
+              <div className="flex justify-center gap-4 mt-6 text-[9px]" style={{ color: 'var(--dim)' }}>
                 <span>Web Audio API</span>
                 <span>·</span>
                 <span>HRTF Binaural</span>
@@ -234,7 +247,7 @@ export function App() {
               </div>
 
               {/* ── Panel prawy — dane wywiadu + timing ── */}
-              <div className="w-80 border-l border-white/5 overflow-hidden">
+              <div className="w-80 overflow-hidden" style={{ borderLeft: '1px solid rgba(240, 235, 224, 0.08)' }}>
                 <Playlist
                   interview={selectedInterview}
                   currentTrackIndex={currentTrackIndex}
@@ -259,10 +272,10 @@ export function App() {
                     <span className="text-4xl opacity-30">🎙️</span>
                   </div>
                 </div>
-                <h2 className="text-lg font-semibold text-white/20 mb-2">
+                <h2 className="text-lg font-semibold mb-2" style={{ color: 'rgba(240, 235, 224, 0.4)' }}>
                   Wybierz wywiad
                 </h2>
-                <p className="text-xs text-white/10 max-w-xs">
+                <p className="text-xs max-w-xs" style={{ color: 'var(--dim)' }}>
                   Wybierz element z bocznego panelu, aby załadować przestrzenny
                   wywiad audio
                 </p>

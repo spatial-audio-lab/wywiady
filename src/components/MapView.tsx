@@ -352,59 +352,32 @@ function drawVignette(c: CanvasRenderingContext2D, w: number, h: number) {
 }
 
 // Badge informujący o trybie binaural (górny lewy róg)
-function drawBinauralBadge(
-  c: CanvasRenderingContext2D,
-  w: number,
-  dpr: number,
-  accentColor: string,
-) {
+function drawBinauralBadge(c: CanvasRenderingContext2D, dpr: number) {
   const badgeX = 16 * dpr
   const badgeY = 16 * dpr
-  const badgeW = 272 * dpr
   const badgeH = 36 * dpr
-  const r = 0
+  const paddingX = 12 * dpr
+  const label = "🎧  Binaural · przestrzeń zakodowana w nagraniu"
 
   c.save()
 
-  // tło z zaokrąglonymi rogami
-  c.beginPath()
-  c.moveTo(badgeX + r, badgeY)
-  c.lineTo(badgeX + badgeW - r, badgeY)
-  c.quadraticCurveTo(badgeX + badgeW, badgeY, badgeX + badgeW, badgeY + r)
-  c.lineTo(badgeX + badgeW, badgeY + badgeH - r)
-  c.quadraticCurveTo(
-    badgeX + badgeW,
-    badgeY + badgeH,
-    badgeX + badgeW - r,
-    badgeY + badgeH,
-  )
-  c.lineTo(badgeX + r, badgeY + badgeH)
-  c.quadraticCurveTo(badgeX, badgeY + badgeH, badgeX, badgeY + badgeH - r)
-  c.lineTo(badgeX, badgeY + r)
-  c.quadraticCurveTo(badgeX, badgeY, badgeX + r, badgeY)
-  c.closePath()
+  // szerokość liczona z realnej szerokości tekstu (font musi być ustawiony przed measureText)
+  c.font = `${11 * dpr}px 'Lexend', system-ui, sans-serif`
+  const textWidth = c.measureText(label).width
+  const badgeW = textWidth + paddingX * 2
 
-  // kolor badge'a oparty na accentColor
-  const n = parseInt(accentColor.slice(1), 16)
-  const rr = (n >> 16) & 255
-  const gg = (n >> 8) & 255
-  const bb = n & 255
-  c.fillStyle = `rgba(${rr},${gg},${bb},0.18)`
-  c.strokeStyle = `rgba(${rr},${gg},${bb},0.6)`
+  // tło + ramka — stały semantyczny --amber (to wskaźnik trybu, nie tożsamość rozmówcy)
+  c.fillStyle = "rgba(255,171,0,0.16)"
+  c.strokeStyle = "rgba(255,171,0,0.6)"
   c.lineWidth = 1 * dpr
-  c.fill()
-  c.stroke()
+  c.fillRect(badgeX, badgeY, badgeW, badgeH)
+  c.strokeRect(badgeX, badgeY, badgeW, badgeH)
 
   // tekst
   c.fillStyle = "#FFAB00" // --amber
-  c.font = `${11 * dpr}px 'Lexend', system-ui, sans-serif`
   c.textBaseline = "middle"
   c.textAlign = "left"
-  c.fillText(
-    "🎧  Binaural · przestrzeń zakodowana w nagraniu",
-    badgeX + 12 * dpr,
-    badgeY + badgeH / 2,
-  )
+  c.fillText(label, badgeX + paddingX, badgeY + badgeH / 2)
 
   c.restore()
 
@@ -960,7 +933,7 @@ export function MapView({
 
       // badge binaural (górny lewy róg)
       if (pr.binaural) {
-        drawBinauralBadge(ctx, w, dpr, pr.accentColor)
+        drawBinauralBadge(ctx, dpr)
       }
     }
 

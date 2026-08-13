@@ -133,8 +133,82 @@ export function App() {
       ? selectedInterview.tracks[currentTrackIndex].speaker
       : null
 
+  const audioContextRunning = audioReady && isPlaying
+
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden" style={{ background: 'var(--black)', color: 'var(--cream)' }}>
+      {/* ═══════ Minimalny nagłówek narzędzia (manifest §08) ═══════ */}
+      <header
+        className="flex items-center justify-between gap-4 flex-wrap"
+        style={{
+          flexShrink: 0,
+          background: 'var(--black)',
+          borderBottom: '1px solid var(--border2)',
+          padding: '16px 24px',
+        }}
+      >
+        <div className="flex items-center">
+          <a
+            href="/"
+            className="font-['Azeret_Mono']"
+            style={{
+              fontSize: '0.72rem',
+              letterSpacing: '0.04em',
+              color: 'var(--dim)',
+              textDecoration: 'none',
+              border: '1px solid var(--border2)',
+              padding: '8px 14px',
+              whiteSpace: 'nowrap',
+              transition: 'color 0.2s ease, border-color 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = 'var(--cream)'
+              e.currentTarget.style.borderColor = 'var(--dim)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = 'var(--dim)'
+              e.currentTarget.style.borderColor = 'var(--border2)'
+            }}
+          >
+            ← Hub
+          </a>
+          <span
+            className="font-['Lexend']"
+            style={{
+              fontWeight: 500,
+              fontSize: '0.85rem',
+              color: 'var(--cream)',
+              marginLeft: '16px',
+              paddingLeft: '16px',
+              borderLeft: '1px solid var(--border2)',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            Wywiady
+          </span>
+        </div>
+        <div
+          className="font-['Azeret_Mono'] flex items-center gap-2"
+          style={{
+            fontSize: '0.68rem',
+            letterSpacing: '0.04em',
+            color: audioContextRunning ? 'var(--cyan)' : 'var(--dim)',
+          }}
+        >
+          <span
+            style={{
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              background: audioContextRunning ? 'var(--cyan)' : 'var(--dim)',
+              boxShadow: audioContextRunning ? '0 0 8px rgba(0,229,204,0.6)' : 'none',
+              transition: 'background 0.25s ease, box-shadow 0.25s ease',
+            }}
+          />
+          <span>Audio Context: {audioContextRunning ? 'Running' : 'Idle'}</span>
+        </div>
+      </header>
+
       {/* ═══════ Welcome overlay ═══════ */}
       {showWelcome && (
         <div className="fixed inset-0 z-50 overflow-y-auto font-['Lexend']" style={{ background: 'var(--black)' }}>
@@ -192,6 +266,23 @@ export function App() {
                 </button>
               </div>
 
+              {/* Ostrzeżenie o słuchawkach (manifest §12) */}
+              <div
+                className="font-['Azeret_Mono'] flex items-center justify-center gap-2 mt-6"
+                style={{
+                  fontSize: '0.66rem',
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  color: 'var(--amber)',
+                  border: '1px solid rgba(255, 171, 0, 0.3)',
+                  background: 'rgba(255, 171, 0, 0.06)',
+                  padding: '10px 14px',
+                }}
+              >
+                <span>🎧</span>
+                <span>Wymagane słuchawki — treść wymaga odsłuchu w słuchawkach (dźwięk binauralny)</span>
+              </div>
+
               <div className="flex justify-center gap-4 mt-6 text-[9px]" style={{ color: 'var(--dim)' }}>
                 <span>Web Audio API</span>
                 <span>·</span>
@@ -202,12 +293,15 @@ export function App() {
                 <span>Canvas 2D</span>
               </div>
 
+              {/* Moduł KPO — zawsze na białym tle (manifest §13) */}
               <div className="flex justify-center mt-8">
-                <img
-                  src={`${import.meta.env.BASE_URL}assets/img/KPO.jpg`}
-                  alt="Krajowy Plan Odbudowy"
-                  className="h-12 md:h-16 opacity-90 rounded-sm"
-                />
+                <div style={{ background: '#FFFFFF', padding: '10px 16px', display: 'inline-flex' }}>
+                  <img
+                    src={`${import.meta.env.BASE_URL}assets/img/KPO.jpg`}
+                    alt="Krajowy Plan Odbudowy"
+                    className="h-12 md:h-16"
+                  />
+                </div>
               </div>
             </div>
           </div>

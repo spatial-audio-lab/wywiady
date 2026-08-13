@@ -931,7 +931,9 @@ export function MapView({
       drawVignette(ctx, w, h)
 
       // compass (top-left, ale w binaural przesuń żeby nie nakładał się z badge)
-      const compassOffsetY = pr.binaural ? 90 * dpr : 50 * dpr
+      // Badge binaural zajmuje y: 16–52 (box) + 60–~74 (druga linia tekstu),
+      // więc środek kompasu musi zejść niżej niż jego promień + margines od ~74.
+      const compassOffsetY = pr.binaural ? 132 * dpr : 50 * dpr
       const compassR = 36 * dpr
       drawCompass(ctx, 50 * dpr, compassOffsetY, compassR, st.angle, dpr)
 

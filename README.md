@@ -24,7 +24,7 @@
 - [Build produkcyjny](#-build-produkcyjny)
 - [Dodawanie własnych wywiadów](#-dodawanie-własnych-wywiadów)
 - [Notatki inżynieryjne](#-notatki-inżynieryjne)
-- [O projekcie](#-o-projekcie)
+- [O projekcie](#o-projekcie)
 - [Licencja](#-licencja)
 
 ---
